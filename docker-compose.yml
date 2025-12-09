@@ -1,0 +1,35 @@
+services:
+  # 1. Kokoro TTS Service (The backend for local text-to-speech)
+  kokoro-tts:
+    image: ghcr.io/remsky/kokoro-fastapi-cpu:latest # Use ghcr.io/remsky/kokoro-fastapi-gpu:latest for GPU
+    container_name: kokoro-tts-server
+    restart: unless-stopped
+    # Expose the Kokoro WebUI and API for testing/monitoring (optional, but recommended)
+    ports:
+      - "8880:8880"
+    volumes:
+      # Cache models to persist them across restarts
+      - ./kokoro-cache:/kokoro/cache 
+    # If using GPU, uncomment the deploy block below
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # 2. Next.js Web UI
+  audiobook-web-ui:
+    build: ./web-ui
+    container_name: audiobook-web-ui
+    restart: unless-stopped
+    depends_on:
+      - kokoro-tts
+    ports:
+      - "3000:3000"
+    environment:
+      - KOKORO_BASE_URL=http://kokoro-tts:8880/v1
+    volumes:
+      # Persist downloads
+      - ./web-ui/public/downloads:/app/public/downloads
