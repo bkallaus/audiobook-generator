@@ -14,6 +14,8 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
   const [textInput, setTextInput] = useState('');
@@ -45,6 +47,8 @@ export default function Home() {
     setError(null);
     setDownloadUrl(null);
     setStatus('Initializing generation...');
+    setStartTime(Date.now());
+    setEstimatedTimeRemaining(null);
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -89,6 +93,21 @@ export default function Home() {
 
             if (data.type === 'progress') {
               setStatus(`Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle} (${data.progress}%)`);
+
+              if (data.processedCharacters && data.totalCharacters && startTime) {
+                const elapsed = (Date.now() - startTime) / 1000; // seconds
+                if (elapsed > 5 && data.processedCharacters > 0) { // Wait a bit for stable speed
+                  const charsPerSec = data.processedCharacters / elapsed;
+                  const remainingChars = data.totalCharacters - data.processedCharacters;
+                  const remainingSeconds = remainingChars / charsPerSec;
+
+                  if (remainingSeconds > 60) {
+                    setEstimatedTimeRemaining(`${Math.ceil(remainingSeconds / 60)} minutes remaining`);
+                  } else {
+                    setEstimatedTimeRemaining(`${Math.ceil(remainingSeconds)} seconds remaining`);
+                  }
+                }
+              }
             } else if (data.type === 'status') {
               setStatus(data.message);
             } else if (data.type === 'result') {
@@ -302,6 +321,7 @@ export default function Home() {
             {/* Status Log */}
             <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm h-48 overflow-y-auto mb-6 shadow-inner">
               <p className="opacity-50 text-xs mb-2">System Logs:</p>
+              {estimatedTimeRemaining && <p className="text-blue-400 font-bold mb-2">&gt; ETA: {estimatedTimeRemaining}</p>}
               {status && <p>&gt; {status}</p>}
               {error && <p className="text-red-400">&gt; Error: {error}</p>}
               {!status && !error && <p className="text-gray-600 italic">Waiting for input...</p>}
@@ -314,15 +334,6 @@ export default function Home() {
                   <FileAudio className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-green-800 mb-2">Audiobook Ready!</h3>
-                <p className="text-green-600 text-sm mb-6 text-center">Your M4B file has been generated successfully.</p>
-
-                <a
-                  href={downloadUrl}
-                  download
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-medium flex items-center gap-2 transition-colors shadow-sm"
-                >
-                  <Download className="w-4 h-4" /> Download M4B
-                </a>
               </div>
             )}
           </div>

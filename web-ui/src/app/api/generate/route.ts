@@ -94,6 +94,10 @@ async function processChapters(
     const audioFilePaths: string[] = [];
     let chapterIndex = 0;
 
+    // Calculate total characters
+    const totalCharacters = chapters.reduce((acc, chapter) => acc + chapter.text.length, 0);
+    let globalProcessedCharacters = 0;
+
     for (const chapter of chapters) {
         if (signal.aborted) throw new Error('Generation aborted');
         if (!chapter.text.trim()) continue;
@@ -114,6 +118,9 @@ async function processChapters(
                     );
                     audioFilePaths.push(chunkPath);
                     chunkIndex++;
+
+                    // Update global progress
+                    globalProcessedCharacters += currentChunk.length;
                 }
                 currentChunk = p + ' ';
             } else {
@@ -123,12 +130,22 @@ async function processChapters(
 
             // Emit progress
             const progress = Math.round((processedParagraphs / paragraphs.length) * 100);
+
+            // Note: We only add currentChunk length when it's processed, but for smoother UI 
+            // we might want to estimate, but strict accounting is safer.
+            // Actually, let's just send the globalProcessedCharacters + current buffer length as a "current" state
+            // But to be safe and simple, we update globalProcessedCharacters only when we generate audio.
+            // However, that might make the progress jumpy. 
+            // Let's stick to the previous logic but add the character counts.
+
             sendEvent({
                 type: 'progress',
                 chapterIndex: chapterIndex + 1,
                 totalChapters: chapters.length,
                 chapterTitle: chapter.title,
-                progress: progress
+                progress: progress,
+                processedCharacters: globalProcessedCharacters,
+                totalCharacters: totalCharacters
             });
         }
 
@@ -139,6 +156,7 @@ async function processChapters(
             );
             audioFilePaths.push(chunkPath);
             chunkIndex++;
+            globalProcessedCharacters += currentChunk.length;
         }
         chapterIndex++;
     }
