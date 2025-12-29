@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Download, Loader2, FileAudio, FileText } from 'lucide-react';
-import axios from 'axios';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -11,6 +10,7 @@ export default function Home() {
   const [speed, setSpeed] = useState(1.0);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>('');
+  const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -47,6 +47,7 @@ export default function Home() {
     setError(null);
     setDownloadUrl(null);
     setStatus('Initializing generation...');
+    setProgress(0);
     setStartTime(Date.now());
     setEstimatedTimeRemaining(null);
 
@@ -92,11 +93,12 @@ export default function Home() {
             const data = JSON.parse(line);
 
             if (data.type === 'progress') {
-              setStatus(`Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle} (${data.progress}%)`);
+              setStatus(`Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle}`);
+              setProgress(data.progress);
 
               if (data.processedCharacters && data.totalCharacters && startTime) {
-                const elapsed = (Date.now() - startTime) / 1000; // seconds
-                if (elapsed > 5 && data.processedCharacters > 0) { // Wait a bit for stable speed
+                const elapsed = (Date.now() - startTime!) / 1000; // seconds
+                if (elapsed > 5 && data.processedCharacters > 0) {
                   const charsPerSec = data.processedCharacters / elapsed;
                   const remainingChars = data.totalCharacters - data.processedCharacters;
                   const remainingSeconds = remainingChars / charsPerSec;
@@ -114,6 +116,7 @@ export default function Home() {
               if (data.success) {
                 setDownloadUrl(data.downloadUrl);
                 setStatus('Generation complete!');
+                setProgress(100);
               } else {
                 setError('Generation failed.');
                 setStatus('Failed.');
@@ -145,154 +148,154 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8 border-b border-gray-200 pb-4">
-          <h1 className="text-3xl font-bold text-gray-800">Kokoro Audiobook Generator</h1>
-          <p className="text-gray-500 mt-2">Generate M4B audiobooks from EPUB or Text files using local Kokoro TTS.</p>
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-10 text-center">
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+            Kokoro Audiobook Generator
+          </h1>
+          <p className="text-gray-500 mt-3 text-lg">
+            High-performance local TTS. Convert EPUBs or Text to Audiobooks with parallel processing.
+          </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Inputs */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-600" /> Input
-            </h2>
-
-            {/* Input Mode Tabs */}
-            <div className="flex gap-4 mb-4 border-b border-gray-200">
-              <button
-                onClick={() => setInputMode('file')}
-                className={`pb-2 px-1 font-medium transition-colors ${inputMode === 'file'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                File Upload
-              </button>
-              <button
-                onClick={() => setInputMode('text')}
-                className={`pb-2 px-1 font-medium transition-colors ${inputMode === 'text'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Text Input
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Input Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all hover:shadow-xl">
+            <div className="p-6 bg-gray-50 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-500" /> Configuration
+              </h2>
             </div>
 
-            {/* File Upload */}
-            {inputMode === 'file' && (
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-6
-                  ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'}
-                  ${file ? 'bg-green-50 border-green-400' : ''}
-                `}
-              >
-                <input {...getInputProps()} />
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Upload className={`w-8 h-8 ${file ? 'text-green-600' : 'text-gray-400'}`} />
-                  {file ? (
-                    <p className="font-medium text-green-700">{file.name}</p>
-                  ) : (
-                    <>
-                      <p className="text-gray-600 font-medium">Drop EPUB or TXT file here</p>
-                      <p className="text-sm text-gray-400">or click to select</p>
-                    </>
-                  )}
-                </div>
+            <div className="p-8 space-y-6">
+              {/* Input Mode Switch */}
+              <div className="flex p-1 bg-gray-100 rounded-lg mb-6">
+                <button
+                  onClick={() => setInputMode('file')}
+                  className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${inputMode === 'file' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  File Upload
+                </button>
+                <button
+                  onClick={() => setInputMode('text')}
+                  className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${inputMode === 'text' ? 'bg-white shadow text-blue-600' : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                  Text Input
+                </button>
               </div>
-            )}
 
-            {/* Text Input */}
-            {inputMode === 'text' && (
-              <div className="mb-6">
+              {/* Upload / Text Area */}
+              {inputMode === 'file' ? (
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200
+                    ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}
+                    ${file ? 'bg-green-50 border-green-400' : ''}
+                  `}
+                >
+                  <input {...getInputProps()} />
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <div className={`p-4 rounded-full ${file ? 'bg-green-100' : 'bg-blue-50'}`}>
+                      <Upload className={`w-8 h-8 ${file ? 'text-green-600' : 'text-blue-500'}`} />
+                    </div>
+                    {file ? (
+                      <div>
+                        <p className="font-semibold text-green-800">{file.name}</p>
+                        <p className="text-sm text-green-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <p className="text-gray-700 font-medium">Click to upload or drag and drop</p>
+                        <p className="text-xs text-gray-400">EPUB or TXT files supported</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
                 <textarea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Paste or type your text here..."
-                  className="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                  placeholder="Paste your text here..."
+                  className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
                 />
-              </div>
-            )}
+              )}
 
-            {/* Voice Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Voice</label>
-              <select
-                value={voice}
-                onChange={(e) => setVoice(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              >
-                <option value="af_heart">af_heart (Default)</option>
-                <option value="af_sky">af_sky</option>
-                <option value="af_bella">af_bella</option>
-                <option value="af_nicole">af_nicole</option>
-                <option value="af_sarah">af_sarah</option>
-                <option value="am_adam">am_adam</option>
-                <option value="am_michael">am_michael</option>
-                {/* Add more voices as needed */}
-              </select>
-            </div>
+              {/* Options Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Voice Model</label>
+                  <select
+                    value={voice}
+                    onChange={(e) => setVoice(e.target.value)}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="af_heart">af_heart (Default)</option>
+                    <option value="af_sky">af_sky</option>
+                    <option value="af_bella">af_bella</option>
+                    <option value="af_nicole">af_nicole</option>
+                    <option value="af_sarah">af_sarah</option>
+                    <option value="am_adam">am_adam</option>
+                    <option value="am_michael">am_michael</option>
+                  </select>
+                </div>
 
-            {/* Speed Slider */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Speed: {speed}x
-              </label>
-              <input
-                type="range"
-                min="0.5"
-                max="2.0"
-                step="0.1"
-                value={speed}
-                onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
-
-            {/* Output Format */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Output Format</label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Speed: {speed}x</label>
                   <input
-                    type="radio"
-                    name="format"
-                    value="m4b"
-                    checked={format === 'm4b'}
-                    onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
-                    className="w-4 h-4 text-blue-600"
+                    type="range"
+                    min="0.5"
+                    max="2.0"
+                    step="0.1"
+                    value={speed}
+                    onChange={(e) => setSpeed(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mt-3"
                   />
-                  <span className="text-gray-700">M4B (Audiobook)</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="format"
-                    value="mp3"
-                    checked={format === 'mp3'}
-                    onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
-                    className="w-4 h-4 text-blue-600"
-                  />
-                  <span className="text-gray-700">MP3 (Audio)</span>
-                </label>
+                </div>
               </div>
-            </div>
 
-            {/* Generate / Stop Button */}
-            <div className="flex gap-4">
+              {/* Format Selection */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
+                <div className="flex gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="format"
+                      value="m4b"
+                      checked={format === 'm4b'}
+                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="font-medium text-gray-700">M4B (Audiobook)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="format"
+                      value="mp3"
+                      checked={format === 'mp3'}
+                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="font-medium text-gray-700">MP3 (Flat)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Action Button */}
               {!loading ? (
                 <button
                   onClick={handleGenerate}
                   disabled={(inputMode === 'file' && !file) || (inputMode === 'text' && !textInput.trim())}
-                  className={`w-full py-3 px-4 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all
+                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5
                     ${(inputMode === 'file' && !file) || (inputMode === 'text' && !textInput.trim())
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg'}
+                      ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-200'}
                   `}
                 >
-                  <Play className="w-5 h-5" /> Generate Audiobook
+                  <Play className="w-5 h-5 fill-current" /> Start Generation
                 </button>
               ) : (
                 <button
@@ -304,7 +307,7 @@ export default function Home() {
                       setStatus('Generation stopped by user.');
                     }
                   }}
-                  className="w-full py-3 px-4 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all bg-red-500 hover:bg-red-600 shadow-md hover:shadow-lg"
+                  className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
                 >
                   <Loader2 className="w-5 h-5 animate-spin" /> Stop Generation
                 </button>
@@ -312,30 +315,77 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Column: Output */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-fit min-h-[400px]">
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <FileAudio className="w-5 h-5 text-indigo-600" /> Output
-            </h2>
-
-            {/* Status Log */}
-            <div className="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm h-48 overflow-y-auto mb-6 shadow-inner">
-              <p className="opacity-50 text-xs mb-2">System Logs:</p>
-              {estimatedTimeRemaining && <p className="text-blue-400 font-bold mb-2">&gt; ETA: {estimatedTimeRemaining}</p>}
-              {status && <p>&gt; {status}</p>}
-              {error && <p className="text-red-400">&gt; Error: {error}</p>}
-              {!status && !error && <p className="text-gray-600 italic">Waiting for input...</p>}
+          {/* Output Section */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-full">
+            <div className="p-6 bg-gray-50 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <FileAudio className="w-5 h-5 text-indigo-500" /> Output Console
+              </h2>
             </div>
 
-            {/* Result Area */}
-            {downloadUrl && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                  <FileAudio className="w-8 h-8 text-green-600" />
+            <div className="p-8 flex-1 flex flex-col">
+              {/* Progress Card */}
+              <div className="bg-gray-900 rounded-xl p-6 mb-6 shadow-inner flex-1 flex flex-col justify-between min-h-[300px]">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
+                    {estimatedTimeRemaining && (
+                      <span className="text-green-400 text-xs font-mono flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> ETA: {estimatedTimeRemaining}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="font-mono text-sm space-y-2">
+                    {error ? (
+                      <p className="text-red-400">Error: {error}</p>
+                    ) : status ? (
+                      <p className="text-blue-300 typing-effect">{status}</p>
+                    ) : (
+                      <p className="text-gray-600 italic">Waiting for job...</p>
+                    )}
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-green-800 mb-2">Audiobook Ready!</h3>
+
+                {loading && (
+                  <div className="mt-8 space-y-2">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Progress</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Download Card */}
+              {downloadUrl && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6 flex items-center justify-between animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-green-800">Ready for Download</h3>
+                      <p className="text-xs text-green-600">Audiobook successfully generated</p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={downloadUrl}
+                    download
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                  >
+                    Download
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

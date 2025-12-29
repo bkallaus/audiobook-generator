@@ -5,6 +5,7 @@ import { AudioProcessor } from '@/lib/audio';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import pLimit from 'p-limit';
 
 // --- Helper Functions ---
 
@@ -80,7 +81,7 @@ async function generateAndSaveChunk(
 }
 
 /**
- * Processes chapters: chunks text, generates audio, and saves intermediary files.
+ * Processes chapters: chunks text, generates audio in parallel, and saves intermediary files.
  */
 async function processChapters(
     chapters: { title: string; text: string }[],
@@ -91,75 +92,103 @@ async function processChapters(
     signal: AbortSignal,
     sendEvent: (data: any) => void
 ): Promise<string[]> {
-    const audioFilePaths: string[] = [];
-    let chapterIndex = 0;
+    // 1. Pre-calculate all chunks
+    interface ChunkTask {
+        text: string;
+        chapterTitle: string;
+        chapterIndex: number;
+        chunkIndex: number;
+    }
 
-    // Calculate total characters
+    let allChunks: ChunkTask[] = [];
     const totalCharacters = chapters.reduce((acc, chapter) => acc + chapter.text.length, 0);
-    let globalProcessedCharacters = 0;
 
+    // Chunking Logic
+    let globalChapterIndex = 0;
     for (const chapter of chapters) {
-        if (signal.aborted) throw new Error('Generation aborted');
-        if (!chapter.text.trim()) continue;
+        if (!chapter.text.trim()) {
+            globalChapterIndex++;
+            continue;
+        }
 
         const paragraphs = chapter.text.split(/\n+/);
         let currentChunk = '';
         let chunkIndex = 0;
-        let processedParagraphs = 0;
 
         for (const p of paragraphs) {
-            if (signal.aborted) throw new Error('Generation aborted');
-
-            // Chunking logic (approx 2000 chars)
             if ((currentChunk + p).length > 2000) {
                 if (currentChunk.trim()) {
-                    const chunkPath = await generateAndSaveChunk(
-                        currentChunk, kokoro, voice, speed, signal, bookDir, chapter.title, chapterIndex, chunkIndex
-                    );
-                    audioFilePaths.push(chunkPath);
+                    allChunks.push({
+                        text: currentChunk,
+                        chapterTitle: chapter.title,
+                        chapterIndex: globalChapterIndex,
+                        chunkIndex: chunkIndex
+                    });
                     chunkIndex++;
-
-                    // Update global progress
-                    globalProcessedCharacters += currentChunk.length;
                 }
                 currentChunk = p + ' ';
             } else {
                 currentChunk += p + ' ';
             }
-            processedParagraphs++;
+        }
 
-            // Emit progress
-            const progress = Math.round((processedParagraphs / paragraphs.length) * 100);
-
-            // Note: We only add currentChunk length when it's processed, but for smoother UI 
-            // we might want to estimate, but strict accounting is safer.
-            // Actually, let's just send the globalProcessedCharacters + current buffer length as a "current" state
-            // But to be safe and simple, we update globalProcessedCharacters only when we generate audio.
-            // However, that might make the progress jumpy. 
-            // Let's stick to the previous logic but add the character counts.
-
-            sendEvent({
-                type: 'progress',
-                chapterIndex: chapterIndex + 1,
-                totalChapters: chapters.length,
+        if (currentChunk.trim()) {
+            allChunks.push({
+                text: currentChunk,
                 chapterTitle: chapter.title,
-                progress: progress,
-                processedCharacters: globalProcessedCharacters,
-                totalCharacters: totalCharacters
+                chapterIndex: globalChapterIndex,
+                chunkIndex: chunkIndex
             });
         }
-
-        // Save remaining chunk
-        if (currentChunk.trim()) {
-            const chunkPath = await generateAndSaveChunk(
-                currentChunk, kokoro, voice, speed, signal, bookDir, chapter.title, chapterIndex, chunkIndex
-            );
-            audioFilePaths.push(chunkPath);
-            chunkIndex++;
-            globalProcessedCharacters += currentChunk.length;
-        }
-        chapterIndex++;
+        globalChapterIndex++;
     }
+
+    // 2. Process chunks in parallel
+    // Limit concurrency to 4 to avoid overwhelming the TTS server or memory
+    const limit = pLimit(4);
+    const audioFilePaths: string[] = new Array(allChunks.length);
+    let completedChunks = 0;
+    let processedCharacters = 0;
+
+    const tasks = allChunks.map((task, index) => {
+        return limit(async () => {
+            if (signal.aborted) return;
+
+            const filePath = await generateAndSaveChunk(
+                task.text,
+                kokoro,
+                voice,
+                speed,
+                signal,
+                bookDir,
+                task.chapterTitle,
+                task.chapterIndex,
+                task.chunkIndex
+            );
+
+            // Store result at correct index to maintain order
+            audioFilePaths[index] = filePath;
+
+            completedChunks++;
+            processedCharacters += task.text.length;
+
+            // Emit progress
+            const progress = Math.round((completedChunks / allChunks.length) * 100);
+            sendEvent({
+                type: 'progress',
+                chapterIndex: task.chapterIndex + 1, // Display 1-based index
+                totalChapters: chapters.length,
+                chapterTitle: task.chapterTitle,
+                progress: progress,
+                processedCharacters: processedCharacters,
+                totalCharacters: totalCharacters
+            });
+        });
+    });
+
+    await Promise.all(tasks);
+
+    if (signal.aborted) throw new Error('Generation aborted');
 
     return audioFilePaths;
 }
@@ -195,7 +224,7 @@ export async function POST(req: NextRequest) {
                 const bookDir = path.join(outputDir, safeFilename);
                 ensureDir(bookDir);
 
-                // 3. Generate Audio (Chapter by Chapter)
+                // 3. Generate Audio (Parallel Chunks)
                 const kokoro = new KokoroClient();
                 const audioFilePaths = await processChapters(
                     chapters,
