@@ -76,7 +76,7 @@ async function generateAndSaveChunk(
     const chunkPath = path.join(bookDir, chunkFilename);
 
     // Save to disk
-    fs.writeFileSync(chunkPath, audio);
+    await fs.promises.writeFile(chunkPath, audio);
     return chunkPath;
 }
 
