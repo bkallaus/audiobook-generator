@@ -35,9 +35,10 @@ export class AudioProcessor {
                     .outputOptions('-movflags', '+faststart');
             } else {
                 // MP3
+                // Since inputs are already MP3 (from Kokoro), we can copy the stream
+                // This avoids re-encoding artifacts and is much faster
                 command = command
-                    .audioCodec('libmp3lame')
-                    .audioBitrate('192k');
+                    .audioCodec('copy');
             }
 
             if (metadata.title) command = command.outputOptions('-metadata', `title=${metadata.title}`);
