@@ -112,32 +112,38 @@ async function processChapters(
         }
 
         const paragraphs = chapter.text.split(/\n+/);
-        let currentChunk = '';
+        let currentChunkParts: string[] = [];
+        let currentChunkLen = -1; // Start at -1 to offset the first space
         let chunkIndex = 0;
 
         for (const p of paragraphs) {
-            if ((currentChunk + p).length > 2000) {
-                if (currentChunk.trim()) {
+            const trimmedP = p.trim();
+            if (!trimmedP) continue;
+
+            if (currentChunkLen + 1 + trimmedP.length > 2000) {
+                if (currentChunkParts.length > 0) {
                     allChunks.push({
-                        text: currentChunk,
+                        text: currentChunkParts.join(' '),
                         chapterTitle: chapter.title,
                         chapterIndex: globalChapterIndex,
-                        chunkIndex: chunkIndex
+                        chunkIndex: chunkIndex,
                     });
                     chunkIndex++;
                 }
-                currentChunk = p + ' ';
+                currentChunkParts = [trimmedP];
+                currentChunkLen = trimmedP.length;
             } else {
-                currentChunk += p + ' ';
+                currentChunkParts.push(trimmedP);
+                currentChunkLen += 1 + trimmedP.length;
             }
         }
 
-        if (currentChunk.trim()) {
+        if (currentChunkParts.length > 0) {
             allChunks.push({
-                text: currentChunk,
+                text: currentChunkParts.join(' '),
                 chapterTitle: chapter.title,
                 chapterIndex: globalChapterIndex,
-                chunkIndex: chunkIndex
+                chunkIndex: chunkIndex,
             });
         }
         globalChapterIndex++;
