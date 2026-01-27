@@ -19,6 +19,7 @@ export class EpubParser {
                     // Iterate over flow to get chapters in order
                     for (const chapterId of epub.flow) {
                         if (!chapterId.id) continue;
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const chapter = await new Promise<any>((res, rej) => {
                             epub.getChapter(chapterId.id!, (err, text) => {
                                 if (err) rej(err);

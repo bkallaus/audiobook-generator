@@ -76,7 +76,7 @@ async function generateAndSaveChunk(
     const chunkPath = path.join(bookDir, chunkFilename);
 
     // Save to disk
-    fs.writeFileSync(chunkPath, audio);
+    await fs.promises.writeFile(chunkPath, audio);
     return chunkPath;
 }
 
@@ -90,6 +90,7 @@ async function processChapters(
     voice: string,
     speed: number,
     signal: AbortSignal,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sendEvent: (data: any) => void
 ): Promise<string[]> {
     // 1. Pre-calculate all chunks
@@ -100,7 +101,7 @@ async function processChapters(
         chunkIndex: number;
     }
 
-    let allChunks: ChunkTask[] = [];
+    const allChunks: ChunkTask[] = [];
     const totalCharacters = chapters.reduce((acc, chapter) => acc + chapter.text.length, 0);
 
     // Chunking Logic
@@ -210,6 +211,7 @@ export async function POST(req: NextRequest) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
         async start(controller) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const sendEvent = (data: any) => {
                 controller.enqueue(encoder.encode(JSON.stringify(data) + '\n'));
             };
@@ -259,6 +261,7 @@ export async function POST(req: NextRequest) {
                 });
                 controller.close();
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error('Generation error:', error);
                 sendEvent({ type: 'error', error: error.message || 'Internal Server Error' });

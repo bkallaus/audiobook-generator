@@ -131,6 +131,7 @@ export default function Home() {
         }
       }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err.name === 'AbortError') {
         console.log('Request canceled');
