@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -226,19 +227,9 @@ export default function Home() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Voice Model</label>
-                  <select
-                    value={voice}
-                    onChange={(e) => setVoice(e.target.value)}
-                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  >
-                    <option value="af_heart">af_heart (Default)</option>
-                    <option value="af_sky">af_sky</option>
-                    <option value="af_bella">af_bella</option>
-                    <option value="af_nicole">af_nicole</option>
-                    <option value="af_sarah">af_sarah</option>
-                    <option value="am_adam">am_adam</option>
-                    <option value="am_michael">am_michael</option>
-                  </select>
+                  <div className="mt-2">
+                    <VoicePicker selectedVoice={voice} onVoiceSelect={setVoice} />
+                  </div>
                 </div>
 
                 <div className="space-y-1">
