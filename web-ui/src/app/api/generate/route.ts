@@ -9,10 +9,8 @@ import pLimit from 'p-limit';
 
 // --- Helper Functions ---
 
-const ensureDir = (dir: string) => {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+const ensureDir = async (dir: string) => {
+    await fs.promises.mkdir(dir, { recursive: true });
 };
 
 /**
@@ -25,9 +23,9 @@ async function parseInput(file: File | null, textInput: string | null): Promise<
     if (file) {
         // 1. Save uploaded file temporarily
         const buffer = Buffer.from(await file.arrayBuffer());
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kokoro-upload-'));
+        const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'kokoro-upload-'));
         const tempFilePath = path.join(tempDir, file.name);
-        fs.writeFileSync(tempFilePath, buffer);
+        await fs.promises.writeFile(tempFilePath, buffer);
 
         // 2. Parse EPUB (or Text)
         if (file.name.endsWith('.epub')) {
@@ -35,13 +33,13 @@ async function parseInput(file: File | null, textInput: string | null): Promise<
             chapters = parsedChapters.map(c => ({ title: c.title, text: c.text }));
         } else {
             // Assume text file
-            const text = fs.readFileSync(tempFilePath, 'utf-8');
+            const text = await fs.promises.readFile(tempFilePath, 'utf-8');
             chapters = [{ title: 'Full Text', text }];
         }
         filename = path.parse(file.name).name;
 
         // Cleanup temp upload immediately after parsing
-        fs.rmSync(tempDir, { recursive: true, force: true });
+        await fs.promises.rm(tempDir, { recursive: true, force: true });
     } else if (textInput) {
         // Handle direct text input
         chapters = [{ title: 'Text Input', text: textInput }];
@@ -228,7 +226,7 @@ export async function POST(req: NextRequest) {
                 const safeFilename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
                 const outputDir = path.join(process.cwd(), 'public', 'downloads');
                 const bookDir = path.join(outputDir, safeFilename);
-                ensureDir(bookDir);
+                await ensureDir(bookDir);
 
                 // 3. Generate Audio (Parallel Chunks)
                 const kokoro = new KokoroClient();
