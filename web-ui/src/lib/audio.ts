@@ -11,7 +11,7 @@ export class AudioProcessor {
         format: 'm4b' | 'mp3',
         metadata: { title?: string; author?: string }
     ): Promise<string> {
-        const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'audio-merge-'));
+        const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'audio-merge-'));
         // inputFiles are now passed directly
 
 
@@ -20,7 +20,7 @@ export class AudioProcessor {
 
         // Create ffmpeg concat list
         const fileContent = inputFiles.map(f => `file '${f}'`).join('\n');
-        fs.writeFileSync(fileListPath, fileContent);
+        await fs.promises.writeFile(fileListPath, fileContent);
 
         return new Promise((resolve, reject) => {
             let command = ffmpeg()
@@ -45,14 +45,22 @@ export class AudioProcessor {
             if (metadata.author) command = command.outputOptions('-metadata', `artist=${metadata.author}`); // 'artist' is often used for author in audio files
 
             command
-                .on('end', () => {
+                .on('end', async () => {
                     // Cleanup temp files
-                    fs.rmSync(tempDir, { recursive: true, force: true });
+                    try {
+                        await fs.promises.rm(tempDir, { recursive: true, force: true });
+                    } catch (e) {
+                        console.error('Failed to clean up temp directory:', e);
+                    }
                     resolve(outputPath);
                 })
-                .on('error', (err) => {
+                .on('error', async (err) => {
                     // Cleanup temp files
-                    fs.rmSync(tempDir, { recursive: true, force: true });
+                    try {
+                        await fs.promises.rm(tempDir, { recursive: true, force: true });
+                    } catch (e) {
+                        console.error('Failed to clean up temp directory:', e);
+                    }
                     reject(err);
                 })
                 .run();
