@@ -356,24 +356,28 @@ export default function Home() {
 
               {/* Download Card */}
               {downloadUrl && (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6 flex items-center justify-between animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-6 h-6 text-green-600" />
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <CheckCircle className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-green-800">Ready for Download</h3>
+                        <p className="text-xs text-green-600">Audiobook successfully generated</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-green-800">Ready for Download</h3>
-                      <p className="text-xs text-green-600">Audiobook successfully generated</p>
-                    </div>
+
+                    <a
+                      href={downloadUrl}
+                      download
+                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                    >
+                      Download
+                    </a>
                   </div>
 
-                  <a
-                    href={downloadUrl}
-                    download
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                  >
-                    Download
-                  </a>
+                  <audio controls src={downloadUrl} className="w-full mt-2" />
                 </div>
               )}
             </div>
