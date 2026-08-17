@@ -100,7 +100,7 @@ async function processChapters(
         chunkIndex: number;
     }
 
-    let allChunks: ChunkTask[] = [];
+    const allChunks: ChunkTask[] = [];
     const totalCharacters = chapters.reduce((acc, chapter) => acc + chapter.text.length, 0);
 
     // Chunking Logic

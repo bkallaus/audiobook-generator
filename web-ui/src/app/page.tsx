@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -21,6 +21,31 @@ export default function Home() {
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    const savedVoice = localStorage.getItem('voice');
+    const savedSpeed = localStorage.getItem('speed');
+    const savedFormat = localStorage.getItem('format');
+
+    if (savedVoice) setVoice(savedVoice);
+    if (savedSpeed) setSpeed(parseFloat(savedSpeed));
+    if (savedFormat && (savedFormat === 'm4b' || savedFormat === 'mp3')) setFormat(savedFormat);
+  }, []);
+
+  const isMounted = useRef(false);
+
+  // Save preferences to localStorage when they change, skipping the initial mount
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
+    localStorage.setItem('voice', voice);
+    localStorage.setItem('speed', speed.toString());
+    localStorage.setItem('format', format);
+  }, [voice, speed, format]);
+
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
