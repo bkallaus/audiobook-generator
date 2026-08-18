@@ -215,12 +215,22 @@ export default function Home() {
                   </div>
                 </div>
               ) : (
-                <textarea
-                  value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
-                  placeholder="Paste your text here..."
-                  className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
-                />
+                <div className="relative">
+                  <textarea
+                    value={textInput}
+                    onChange={(e) => setTextInput(e.target.value)}
+                    placeholder="Paste your text here..."
+                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                  />
+                  {textInput.length > 0 && (
+                    <button
+                      onClick={() => setTextInput('')}
+                      className="absolute top-2 right-2 text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               )}
 
               {/* Options Grid */}
