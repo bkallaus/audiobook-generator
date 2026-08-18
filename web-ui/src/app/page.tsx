@@ -21,6 +21,7 @@ export default function Home() {
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [customTitle, setCustomTitle] = useState('');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -64,6 +65,9 @@ export default function Home() {
     formData.append('voice', voice);
     formData.append('speed', speed.toString());
     formData.append('format', format);
+    if (customTitle.trim()) {
+      formData.append('customTitle', customTitle.trim());
+    }
 
     try {
       setStatus('Uploading and processing...');
@@ -254,6 +258,18 @@ export default function Home() {
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mt-3"
                   />
                 </div>
+              </div>
+
+              {/* Custom Title */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Custom Title (Optional)</label>
+                <input
+                  type="text"
+                  value={customTitle}
+                  onChange={(e) => setCustomTitle(e.target.value)}
+                  placeholder="e.g., My Awesome Audiobook"
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-shadow"
+                />
               </div>
 
               {/* Format Selection */}

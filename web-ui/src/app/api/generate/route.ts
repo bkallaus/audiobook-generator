@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
     const voice = formData.get('voice') as string || 'af_heart';
     const speed = parseFloat(formData.get('speed') as string || '1.0');
     const outputFormat = (formData.get('format') as 'm4b' | 'mp3') || 'm4b';
+    const customTitle = formData.get('customTitle') as string | null;
 
     if (!file && !textInput) {
         return NextResponse.json({ error: 'No file or text provided' }, { status: 400 });
@@ -222,10 +223,12 @@ export async function POST(req: NextRequest) {
 
             try {
                 // 1. Parse Input
-                const { chapters, filename } = await parseInput(file, textInput);
+                const parsed = await parseInput(file, textInput);
+                const chapters = parsed.chapters;
+                const filename = customTitle || parsed.filename;
 
                 // 2. Setup Directories
-                const safeFilename = filename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const safeFilename = filename.replace(/[^a-z0-9 -]/gi, '_').toLowerCase();
                 const outputDir = path.join(process.cwd(), 'public', 'downloads');
                 const bookDir = path.join(outputDir, safeFilename);
                 ensureDir(bookDir);
