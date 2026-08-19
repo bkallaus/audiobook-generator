@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock, X } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -189,30 +189,46 @@ export default function Home() {
 
               {/* Upload / Text Area */}
               {inputMode === 'file' ? (
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200
-                    ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}
-                    ${file ? 'bg-green-50 border-green-400' : ''}
-                  `}
-                >
-                  <input {...getInputProps()} />
-                  <div className="flex flex-col items-center justify-center gap-3">
-                    <div className={`p-4 rounded-full ${file ? 'bg-green-100' : 'bg-blue-50'}`}>
-                      <Upload className={`w-8 h-8 ${file ? 'text-green-600' : 'text-blue-500'}`} />
+                <div className="relative">
+                  <div
+                    {...getRootProps()}
+                    className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200
+                      ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}
+                      ${file ? 'bg-green-50 border-green-400' : ''}
+                    `}
+                  >
+                    <input {...getInputProps()} />
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className={`p-4 rounded-full ${file ? 'bg-green-100' : 'bg-blue-50'}`}>
+                        <Upload className={`w-8 h-8 ${file ? 'text-green-600' : 'text-blue-500'}`} />
+                      </div>
+                      {file ? (
+                        <div>
+                          <p className="font-semibold text-green-800">{file.name}</p>
+                          <p className="text-sm text-green-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <p className="text-gray-700 font-medium">Click to upload or drag and drop</p>
+                          <p className="text-xs text-gray-400">EPUB or TXT files supported</p>
+                        </div>
+                      )}
                     </div>
-                    {file ? (
-                      <div>
-                        <p className="font-semibold text-green-800">{file.name}</p>
-                        <p className="text-sm text-green-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        <p className="text-gray-700 font-medium">Click to upload or drag and drop</p>
-                        <p className="text-xs text-gray-400">EPUB or TXT files supported</p>
-                      </div>
-                    )}
                   </div>
+                  {file && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFile(null);
+                        setDownloadUrl(null);
+                        setStatus('');
+                      }}
+                      className="absolute top-2 right-2 text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur p-1 rounded-full transition-colors shadow-sm border border-gray-100"
+                      title="Clear file"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="relative">
