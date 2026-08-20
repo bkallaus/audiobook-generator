@@ -1,9 +1,15 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock, History, Trash2 } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
+
+interface HistoryItem {
+  filename: string;
+  url: string;
+  timestamp: number;
+}
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
@@ -21,6 +27,18 @@ export default function Home() {
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('kokoro_history');
+      if (saved) {
+        setHistory(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error('Failed to load history', e);
+    }
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -118,6 +136,19 @@ export default function Home() {
                 setDownloadUrl(data.downloadUrl);
                 setStatus('Generation complete!');
                 setProgress(100);
+
+                // Update History
+                const newItem: HistoryItem = {
+                  filename: data.downloadUrl.split('/').pop() || 'Unknown File',
+                  url: data.downloadUrl,
+                  timestamp: Date.now()
+                };
+                setHistory(prev => {
+                  const newHistory = [newItem, ...prev].slice(0, 5); // Keep last 5
+                  localStorage.setItem('kokoro_history', JSON.stringify(newHistory));
+                  return newHistory;
+                });
+
               } else {
                 setError('Generation failed.');
                 setStatus('Failed.');
@@ -388,6 +419,47 @@ export default function Home() {
                   </div>
 
                   <audio controls src={downloadUrl} className="w-full mt-2" />
+                </div>
+              )}
+
+              {/* History Card */}
+              {history.length > 0 && (
+                <div className="mt-6 bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden animate-in fade-in duration-500">
+                  <div className="flex items-center justify-between p-4 border-b border-gray-50 bg-gray-50/50">
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
+                      <History className="w-4 h-4 text-gray-500" /> Recent Generations
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setHistory([]);
+                        localStorage.removeItem('kokoro_history');
+                      }}
+                      className="text-xs text-gray-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" /> Clear
+                    </button>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {history.map((item, idx) => (
+                      <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                        <div className="flex flex-col min-w-0 pr-4">
+                          <span className="text-sm font-medium text-gray-700 truncate" title={item.filename}>
+                            {item.filename}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <a
+                          href={item.url}
+                          download
+                          className="flex-shrink-0 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          Download
+                        </a>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
