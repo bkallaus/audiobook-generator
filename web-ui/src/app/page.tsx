@@ -21,6 +21,7 @@ export default function Home() {
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [autoDownload, setAutoDownload] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -118,6 +119,15 @@ export default function Home() {
                 setDownloadUrl(data.downloadUrl);
                 setStatus('Generation complete!');
                 setProgress(100);
+
+                if (autoDownload) {
+                  const a = document.createElement('a');
+                  a.href = data.downloadUrl;
+                  a.download = data.downloadUrl.split('/').pop() || 'audiobook';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                }
               } else {
                 setError('Generation failed.');
                 setStatus('Failed.');
@@ -132,6 +142,7 @@ export default function Home() {
         }
       }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (err.name === 'AbortError') {
         console.log('Request canceled');
@@ -283,6 +294,19 @@ export default function Home() {
                     <span className="font-medium text-gray-700">MP3 (Flat)</span>
                   </label>
                 </div>
+              </div>
+
+              {/* Auto Download */}
+              <div className="flex items-center pt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={autoDownload}
+                    onChange={(e) => setAutoDownload(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="font-medium text-sm text-gray-700 group-hover:text-gray-900 transition-colors">Auto-download when complete</span>
+                </label>
               </div>
 
               {/* Action Button */}
