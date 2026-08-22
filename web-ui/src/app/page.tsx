@@ -40,7 +40,7 @@ export default function Home() {
     maxFiles: 1
   });
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (inputMode === 'file' && !file) return;
     if (inputMode === 'text' && !textInput.trim()) return;
 
@@ -145,7 +145,28 @@ export default function Home() {
       setLoading(false);
       setAbortController(null);
     }
-  };
+  }, [inputMode, file, textInput, voice, speed, format, startTime]);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        if (loading) {
+          if (abortController) {
+            abortController.abort();
+            setAbortController(null);
+            setLoading(false);
+            setStatus('Generation stopped by user.');
+          }
+        } else {
+          handleGenerate();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [loading, abortController, handleGenerate]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
@@ -290,13 +311,16 @@ export default function Home() {
                 <button
                   onClick={handleGenerate}
                   disabled={(inputMode === 'file' && !file) || (inputMode === 'text' && !textInput.trim())}
-                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5
+                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex flex-col items-center justify-center gap-1 transition-all transform hover:-translate-y-0.5
                     ${(inputMode === 'file' && !file) || (inputMode === 'text' && !textInput.trim())
                       ? 'bg-gray-300 cursor-not-allowed shadow-none'
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-200'}
                   `}
                 >
-                  <Play className="w-5 h-5 fill-current" /> Start Generation
+                  <div className="flex items-center gap-2">
+                    <Play className="w-5 h-5 fill-current" /> <span>Start Generation</span>
+                  </div>
+                  <span className="text-xs opacity-75 font-normal">(⌘/Ctrl + Enter)</span>
                 </button>
               ) : (
                 <button
@@ -308,9 +332,12 @@ export default function Home() {
                       setStatus('Generation stopped by user.');
                     }
                   }}
-                  className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                  className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex flex-col items-center justify-center gap-1 transition-all hover:-translate-y-0.5"
                 >
-                  <Loader2 className="w-5 h-5 animate-spin" /> Stop Generation
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" /> <span>Stop Generation</span>
+                  </div>
+                  <span className="text-xs opacity-75 font-normal">(⌘/Ctrl + Enter)</span>
                 </button>
               )}
             </div>

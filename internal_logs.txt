@@ -1,0 +1,13 @@
+Assumptions:
+- The user did not specify a feature, so I must invent one that does not exist in branches.
+- Branches exist for: character-count, clear-selected-file, clear-text-button, custom-output-title, inline-audio-preview, persist-settings, recent-generations-history, auto-download-completion.
+- Selected Feature: Global Keyboard Shortcut (Cmd/Ctrl + Enter) to start or stop generation.
+- The simplest approach is a global event listener on window.
+
+Architectural Approaches:
+1. Standard: `useEffect` in `page.tsx` that attaches a `keydown` listener to `window`. Calls `handleGenerate` or `abortController.abort()` depending on `loading` state.
+2. Minimalist: Add `onKeyDown` handler to the `textarea` and body. (Fails if focus is lost, so less reliable).
+3. Lateral: Use a hidden button with `accessKey` attribute. (Requires Alt+Shift+Key, less standard).
+
+Selection:
+Standard approach. It's robust and simple. I'll add `(⌘/Ctrl + Enter)` text to the primary action button to expose the feature to users.
