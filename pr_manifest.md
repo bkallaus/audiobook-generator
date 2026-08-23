@@ -1,22 +1,26 @@
-PR Title: feat: Inline Audio Preview
+PR Title: feat: Speed Presets
 
-The Problem Solved: Users lacked a way to quickly listen to generated audio without downloading the file entirely. This feature adds an inline HTML5 audio preview to the download card, enabling immediate feedback upon audiobook generation.
+The Problem Solved: Allows users to quickly select common playback speeds (1.0x, 1.2x, 1.5x, 2.0x) without having to manually drag the slider, improving usability and saving time.
 
 Visuals:
-![UI Screenshot Validation](/home/jules/verification.png)
+[UI Screenshot Validation](/home/jules/verification/screenshots/speed-preset.png)
+[UI Video Validation](/home/jules/verification/videos/e0dd399837a495e63ea9f2aa6125605c.webm)
 
 Implementation Journey:
-* Added a flex-col layout to the success card in `web-ui/src/app/page.tsx`.
-* Inserted a native `<audio controls src={downloadUrl} />` element under the download button.
+* Added a flex container to the Speed label header.
+* Implemented preset buttons mapped to the `setSpeed` state.
+* Added active/inactive styling to highlight the currently selected speed.
 
 Tradeoffs & Assumptions:
-* Assumption: We want the simplest approach to add audio playback.
-* Standard Approach: Add a custom React player (Too much boilerplate).
-* Minimalist Approach (Chosen): Native `<audio controls>`. Fast, zero dependencies, uses existing browser API.
-* Lateral Approach: Web Audio API waveform visualization (Too complex).
+* Assumption: Users frequently choose standard speed increments rather than arbitrary granular numbers.
+* Standard Approach: Add buttons underneath the slider (uses too much vertical space).
+* Minimalist Approach (Chosen): Add small chips next to the label. Preserves space and fits the clean UI perfectly.
+* Lateral Approach: Replace slider with a dropdown (removes granular control).
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` folder.
 2. Go to `http://localhost:3000`.
-3. Input text on the Text Input tab and hit Start Generation.
-4. When complete, you should see the download card now contains an audio player.
+3. Locate the "SPEED" section in the options grid.
+4. Click any of the preset chips (1.0x, 1.2x, etc.) and observe that the slider moves and the state updates.
+
+Action Item: Using submit tool
