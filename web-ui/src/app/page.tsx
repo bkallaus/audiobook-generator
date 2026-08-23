@@ -243,7 +243,24 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Speed: {speed}x</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Speed: {speed.toFixed(1)}x</label>
+                    <div className="flex gap-1">
+                      {[1.0, 1.2, 1.5, 2.0].map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => setSpeed(preset)}
+                          className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
+                            speed === preset
+                              ? 'bg-blue-100 text-blue-700 font-bold'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {preset.toFixed(1)}x
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <input
                     type="range"
                     min="0.5"
