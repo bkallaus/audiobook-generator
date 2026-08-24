@@ -1,22 +1,24 @@
-PR Title: feat: Inline Audio Preview
+PR Title: feat: Dynamic Document Title
 
-The Problem Solved: Users lacked a way to quickly listen to generated audio without downloading the file entirely. This feature adds an inline HTML5 audio preview to the download card, enabling immediate feedback upon audiobook generation.
+The Problem Solved:
+Users lack visibility into the background progress when processing a large audiobook in another tab or window. This feature dynamically updates the browser tab title to show current generation status (`(42%) Generating...`), success, and error states, improving the user experience and multi-tasking capability.
 
 Visuals:
-![UI Screenshot Validation](/home/jules/verification.png)
+![UI Screenshot Validation](/home/jules/verification/verification.png)
 
 Implementation Journey:
-* Added a flex-col layout to the success card in `web-ui/src/app/page.tsx`.
-* Inserted a native `<audio controls src={downloadUrl} />` element under the download button.
+* Updated `layout.tsx` to set a more descriptive default title for the app ("Audiobook Generator").
+* Implemented a `useEffect` hook in `page.tsx` to reactively update `document.title` corresponding to the application's current processing phase (`loading`, `error`, `downloadUrl` logic).
 
 Tradeoffs & Assumptions:
-* Assumption: We want the simplest approach to add audio playback.
-* Standard Approach: Add a custom React player (Too much boilerplate).
-* Minimalist Approach (Chosen): Native `<audio controls>`. Fast, zero dependencies, uses existing browser API.
-* Lateral Approach: Web Audio API waveform visualization (Too complex).
+* Assumption: We want an easily trackable way for users to know if generation finished without constantly checking the specific browser tab.
+* Standard Approach: Push notifications via Notification API (Requires permissions, heavy).
+* Minimalist Approach (Chosen): Dynamically updating `document.title`. Cross-browser compatible, zero dependencies, minimal codebase footprint.
+* Lateral Approach: Favicon progress indicator updates (Fun, but complex to render dynamic image/SVG frames on the fly for Next.js).
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` folder.
 2. Go to `http://localhost:3000`.
-3. Input text on the Text Input tab and hit Start Generation.
-4. When complete, you should see the download card now contains an audio player.
+3. Provide text into the text field and click "Start Generation".
+4. Observe the browser tab title change to show the generation progress (e.g. `(0%) Generating...`).
+5. After it finishes, observe the tab title becomes `✅ Ready! | Audiobook Generator`.
