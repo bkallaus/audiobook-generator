@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -21,6 +21,18 @@ export default function Home() {
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+
+  useEffect(() => {
+    if (loading) {
+      document.title = `(${progress}%) Generating... | Audiobook Generator`;
+    } else if (error) {
+      document.title = `❌ Error | Audiobook Generator`;
+    } else if (downloadUrl) {
+      document.title = `✅ Ready! | Audiobook Generator`;
+    } else {
+      document.title = 'Audiobook Generator';
+    }
+  }, [loading, progress, error, downloadUrl]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
