@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
@@ -17,8 +17,23 @@ export default function Home() {
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (loading) {
+      interval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setElapsedTime(0);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
 
@@ -330,11 +345,18 @@ export default function Home() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center border-b border-gray-800 pb-2">
                     <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
-                    {estimatedTimeRemaining && (
-                      <span className="text-green-400 text-xs font-mono flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> ETA: {estimatedTimeRemaining}
-                      </span>
-                    )}
+                    <div className="flex gap-4">
+                      {loading && (
+                        <span className="text-blue-400 text-xs font-mono flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> Elapsed: {Math.floor(elapsedTime / 60)}:{(elapsedTime % 60).toString().padStart(2, '0')}
+                        </span>
+                      )}
+                      {estimatedTimeRemaining && (
+                        <span className="text-green-400 text-xs font-mono flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> ETA: {estimatedTimeRemaining}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="font-mono text-sm space-y-2">
