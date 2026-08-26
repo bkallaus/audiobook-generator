@@ -5,7 +5,7 @@ interface Voice {
   id: string;
   name: string;
   gender: 'Male' | 'Female';
-  accent: 'American';
+  accent: 'American' | 'British';
 }
 
 const VOICES: Voice[] = [
@@ -16,6 +16,10 @@ const VOICES: Voice[] = [
   { id: 'af_sarah', name: 'Sarah', gender: 'Female', accent: 'American' },
   { id: 'am_adam', name: 'Adam', gender: 'Male', accent: 'American' },
   { id: 'am_michael', name: 'Michael', gender: 'Male', accent: 'American' },
+  { id: 'bf_emma', name: 'Emma', gender: 'Female', accent: 'British' },
+  { id: 'bf_isabella', name: 'Isabella', gender: 'Female', accent: 'British' },
+  { id: 'bm_george', name: 'George', gender: 'Male', accent: 'British' },
+  { id: 'bm_lewis', name: 'Lewis', gender: 'Male', accent: 'British' },
 ];
 
 interface VoicePickerProps {
@@ -26,6 +30,7 @@ interface VoicePickerProps {
 export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) {
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
+  const [accentFilter, setAccentFilter] = useState<'All' | 'American' | 'British'>('All');
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -102,9 +107,29 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
     }
   };
 
+  const filteredVoices = VOICES.filter(voice => accentFilter === 'All' || voice.accent === accentFilter);
+
   return (
-    <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-      {VOICES.map((voice) => (
+    <div className="flex flex-col gap-3">
+      {/* Accent Filter */}
+      <div className="flex bg-gray-100 p-1 rounded-lg">
+        {(['All', 'American', 'British'] as const).map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setAccentFilter(filter)}
+            className={`flex-1 text-xs font-medium py-1.5 px-3 rounded-md transition-all ${
+              accentFilter === filter
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+      {filteredVoices.map((voice) => (
         <div
           key={voice.id}
           onClick={() => onVoiceSelect(voice.id)}
@@ -160,6 +185,7 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }
