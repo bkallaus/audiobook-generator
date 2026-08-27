@@ -26,6 +26,7 @@ interface VoicePickerProps {
 export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) {
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
+  const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -102,9 +103,32 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
     }
   };
 
+  const filteredVoices = VOICES.filter(voice =>
+    genderFilter === 'All' || voice.gender === genderFilter
+  );
+
   return (
-    <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-      {VOICES.map((voice) => (
+    <div className="flex flex-col gap-3">
+      <div className="flex bg-gray-100 p-1 rounded-lg">
+        {(['All', 'Female', 'Male'] as const).map((filter) => (
+          <button
+            key={filter}
+            onClick={() => setGenderFilter(filter)}
+            className={`
+              flex-1 py-1.5 text-xs font-semibold rounded-md transition-all
+              ${genderFilter === filter
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+              }
+            `}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+        {filteredVoices.map((voice) => (
         <div
           key={voice.id}
           onClick={() => onVoiceSelect(voice.id)}
@@ -159,7 +183,8 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
             </button>
           </div>
         </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
