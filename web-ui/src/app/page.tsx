@@ -59,6 +59,10 @@ export default function Home() {
     if (inputMode === 'file' && !file) return;
     if (inputMode === 'text' && !textInput.trim()) return;
 
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     setLoading(true);
     setError(null);
     setDownloadUrl(null);
@@ -133,13 +137,28 @@ export default function Home() {
                 setDownloadUrl(data.downloadUrl);
                 setStatus('Generation complete!');
                 setProgress(100);
+                if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                  new Notification('Audiobook Generation Complete', {
+                    body: 'Your audiobook is ready for download.',
+                  });
+                }
               } else {
                 setError('Generation failed.');
                 setStatus('Failed.');
+                if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                  new Notification('Audiobook Generation Failed', {
+                    body: 'An error occurred during generation.',
+                  });
+                }
               }
             } else if (data.type === 'error') {
               setError(data.error);
               setStatus('Error occurred.');
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                new Notification('Audiobook Generation Error', {
+                  body: data.error || 'An error occurred during generation.',
+                });
+              }
             }
           } catch (e) {
             console.error('Error parsing JSON chunk', e);
