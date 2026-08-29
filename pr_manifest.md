@@ -1,22 +1,30 @@
-PR Title: feat: Inline Audio Preview
+PR Title: feat: Voice Gender Filter
 
-The Problem Solved: Users lacked a way to quickly listen to generated audio without downloading the file entirely. This feature adds an inline HTML5 audio preview to the download card, enabling immediate feedback upon audiobook generation.
+The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
 
 Visuals:
-![UI Screenshot Validation](/home/jules/verification.png)
+![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
+![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
+![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
 
 Implementation Journey:
-* Added a flex-col layout to the success card in `web-ui/src/app/page.tsx`.
-* Inserted a native `<audio controls src={downloadUrl} />` element under the download button.
+* Confirmed no duplication (checked existing branches).
+* Added `genderFilter` state to `VoicePicker`.
+* Applied filtering logic to the `VOICES` array before mapping.
+* Added a minimalist UI toggle using pill buttons above the voice list.
+* Verified functionality locally using a Playwright script.
 
 Tradeoffs & Assumptions:
-* Assumption: We want the simplest approach to add audio playback.
-* Standard Approach: Add a custom React player (Too much boilerplate).
-* Minimalist Approach (Chosen): Native `<audio controls>`. Fast, zero dependencies, uses existing browser API.
-* Lateral Approach: Web Audio API waveform visualization (Too complex).
+* Assumption: Users often have a preference for voice gender before selecting a specific model.
+* Standard Approach: A dropdown filter (Requires more clicks).
+* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
+* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
 
 Testing Instructions:
-1. Run `npm run dev` in the `web-ui` folder.
+1. Run `npm run dev` in the `web-ui` directory.
 2. Go to `http://localhost:3000`.
-3. Input text on the Text Input tab and hit Start Generation.
-4. When complete, you should see the download card now contains an audio player.
+3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
+4. Verify the list updates immediately to show only the corresponding voices.
+5. Verify clicking "All" resets the list.
+
+Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
