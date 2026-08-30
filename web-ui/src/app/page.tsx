@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useDropzone } from 'react-dropzone';
+import { useDropzone, FileRejection } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
@@ -37,7 +37,12 @@ export default function Home() {
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], fileRejections: FileRejection[]) => {
+    if (fileRejections.length > 0) {
+      setError(`Invalid file: ${fileRejections[0].file.name}. Only EPUB and TXT files are supported.`);
+      return;
+    }
+
     if (acceptedFiles.length > 0) {
       setFile(acceptedFiles[0]);
       setError(null);
