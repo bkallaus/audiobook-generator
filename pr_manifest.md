@@ -1,30 +1,26 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Caching for Voice Sample Endpoint
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: Improves API responsiveness and saves compute power by caching identical, static voice samples requested from the `/api/sample` endpoint.
 
-Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+Visuals: N/A (No UI changes)
 
 Implementation Journey:
-* Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+* Added an in-memory `Map` to cache previously generated `Buffer` audio arrays.
+* Checked for cached buffers before querying the `KokoroClient`.
+* Appended `Cache-Control: public, max-age=3600, s-maxage=86400` response headers for CDN and browser-level caching.
+* Fixed a new linting alert caused by my changes without modifying the existing codebase footprint.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+* **Assumption:** The requested text for samples will remain static ("Hello, this is a sample of my voice.").
+* **Tradeoffs/Paths explored:**
+  1. *Standard/Redis Cache*: Too heavy and adds external dependencies.
+  2. *Minimalist (In-Memory Map)*: Simple, fast, and sufficient for the limited number of voices available. *(Chosen)*
+  3. *Lateral (Pre-generation)*: Generate all samples on startup. Would complicate the build and delay boot time unnecessarily.
 
 Testing Instructions:
-1. Run `npm run dev` in the `web-ui` directory.
-2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
+1. Run `npm run dev`.
+2. Open network tools in the browser and select a voice in the UI.
+3. Observe the first fetch taking the standard generation time.
+4. Select the same voice again; observe near-instant fetch time and the presence of `Cache-Control` headers.
 
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+Action Item: Using the `submit` tool to open a PR.
