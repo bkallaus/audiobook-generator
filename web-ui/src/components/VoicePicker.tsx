@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Square, Loader2, Check } from 'lucide-react';
+import { Play, Square, Loader2, Check, Search } from 'lucide-react';
 
 interface Voice {
   id: string;
@@ -27,6 +27,7 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -103,12 +104,28 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
     }
   };
 
-  const filteredVoices = VOICES.filter(voice =>
-    genderFilter === 'All' || voice.gender === genderFilter
-  );
+  const filteredVoices = VOICES.filter(voice => {
+    const matchesGender = genderFilter === 'All' || voice.gender === genderFilter;
+    const matchesSearch = voice.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          voice.id.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesGender && matchesSearch;
+  });
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="h-4 w-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search voices..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        />
+      </div>
+
       <div className="flex bg-gray-100 p-1 rounded-lg">
         {(['All', 'Female', 'Male'] as const).map((filter) => (
           <button
