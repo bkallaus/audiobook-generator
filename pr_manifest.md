@@ -1,30 +1,31 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Voice Search Filter
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: As the list of available Kokoro voices scales, manually scrolling to find a specific voice becomes inefficient. This feature adds a search input to instantly filter the voice list by name or ID, significantly improving voice selection speed.
 
 Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+![Search Initial](/home/jules/verification/screenshots/voice_search_initial.png)
+![Search Active](/home/jules/verification/screenshots/voice_search_active.png)
+![Search with Gender Filter](/home/jules/verification/screenshots/voice_search_male.png)
 
 Implementation Journey:
 * Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+* Decided on a minimalist inline search input directly above the gender filters.
+* Added `searchQuery` state to `VoicePicker`.
+* Updated `filteredVoices` logic to filter by search query (matching name or ID, case-insensitive) in addition to the gender filter.
+* Verified functionality locally using Playwright (captured screenshots of empty, active, and combined filter states).
+* Verified no linting or build errors were introduced.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+* Assumption: Users know the name or partial name of the voice they want, making a text search highly valuable.
+* Standard Approach: A large, debounced search bar. (Overly complex given the small dataset size).
+* Minimalist Approach (Chosen): A small, integrated search input above the gender pills that filters instantly in-memory. Fits existing UI well and is fast.
+* Lateral Approach: Keyboard-first filtering without a dedicated input field (Less discoverable for average users).
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` directory.
 2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
+3. In the "Voice Model" section, type a name like "Bella" or an ID snippet like "sky" in the search box.
+4. Verify the list updates instantly to show matching voices.
+5. Combine the search with a gender filter (e.g., search "Adam", click "Female" -> list should be empty; click "Male" -> list should show Adam).
 
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+Action Item: git push origin HEAD:refs/heads/feature/voice-search-filter
