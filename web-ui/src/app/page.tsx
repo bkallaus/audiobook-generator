@@ -35,6 +35,7 @@ export default function Home() {
     };
   }, [loading]);
   const [textInput, setTextInput] = useState('');
+  const [isTextDragActive, setIsTextDragActive] = useState(false);
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -249,12 +250,38 @@ export default function Home() {
                   </div>
                 </div>
               ) : (
-                <div className="relative">
+                <div
+                  className={`relative border-2 border-dashed rounded-xl transition-all duration-200 ${
+                    isTextDragActive ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsTextDragActive(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsTextDragActive(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsTextDragActive(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file && file.type === 'text/plain') {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        if (event.target?.result) {
+                          setTextInput(event.target.result as string);
+                        }
+                      };
+                      reader.readAsText(file);
+                    }
+                  }}
+                >
                   <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    placeholder="Paste your text here..."
-                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                    placeholder="Paste your text here or drag a .txt file..."
+                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed bg-transparent"
                   />
                   {textInput.length > 0 && (
                     <button
