@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -256,14 +256,28 @@ export default function Home() {
                     placeholder="Paste your text here..."
                     className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
                   />
-                  {textInput.length > 0 && (
-                    <button
-                      onClick={() => setTextInput('')}
-                      className="absolute top-2 right-2 text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors"
-                    >
-                      Clear
-                    </button>
-                  )}
+                  <div className="absolute bottom-2 right-2 flex gap-2">
+                    {textInput.trim().length > 0 && (
+                      <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur px-2 py-1 rounded">
+                        ~{(() => {
+                          const words = textInput.trim().split(/\s+/).filter(w => w.length > 0).length;
+                          const secs = (words / 150 * 60) / speed;
+                          if (secs < 1) return '< 1s';
+                          const m = Math.floor(secs / 60);
+                          const s = Math.floor(secs % 60);
+                          return m > 0 ? `${m}m ${s}s` : `${s}s`;
+                        })()}
+                      </span>
+                    )}
+                    {textInput.length > 0 && (
+                      <button
+                        onClick={() => setTextInput('')}
+                        className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
