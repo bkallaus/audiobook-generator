@@ -15,9 +15,9 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-  const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [finalTime, setFinalTime] = useState<number | null>(null);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -68,8 +68,9 @@ export default function Home() {
     setDownloadUrl(null);
     setStatus('Initializing generation...');
     setProgress(0);
-    setStartTime(Date.now());
+    const currentStartTime = Date.now();
     setEstimatedTimeRemaining(null);
+    setFinalTime(null);
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -116,8 +117,8 @@ export default function Home() {
               setStatus(`Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle}`);
               setProgress(data.progress);
 
-              if (data.processedCharacters && data.totalCharacters && startTime) {
-                const elapsed = (Date.now() - startTime!) / 1000; // seconds
+              if (data.processedCharacters && data.totalCharacters) {
+                const elapsed = (Date.now() - currentStartTime) / 1000; // seconds
                 if (elapsed > 5 && data.processedCharacters > 0) {
                   const charsPerSec = data.processedCharacters / elapsed;
                   const remainingChars = data.totalCharacters - data.processedCharacters;
@@ -134,6 +135,7 @@ export default function Home() {
               setStatus(data.message);
             } else if (data.type === 'result') {
               if (data.success) {
+                setFinalTime(Math.floor((Date.now() - currentStartTime) / 1000));
                 setDownloadUrl(data.downloadUrl);
                 setStatus('Generation complete!');
                 setProgress(100);
@@ -429,7 +431,13 @@ export default function Home() {
                       </div>
                       <div>
                         <h3 className="font-bold text-green-800">Ready for Download</h3>
-                        <p className="text-xs text-green-600">Audiobook successfully generated</p>
+                        <p className="text-xs text-green-600">
+                          {finalTime !== null ? (
+                            `Audiobook successfully generated in ${Math.floor(finalTime / 60)}m ${finalTime % 60}s`
+                          ) : (
+                            'Audiobook successfully generated'
+                          )}
+                        </p>
                       </div>
                     </div>
 
