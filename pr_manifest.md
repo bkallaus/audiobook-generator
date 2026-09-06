@@ -1,30 +1,31 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Random Voice Selector
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: Users faced with a list of high-quality Kokoro voices may experience choice paralysis. This feature adds a simple, one-click "Shuffle" button to randomly select a voice, aiding discovery.
 
 Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+![Random Voice Selector](/home/jules/verification/screenshots/random_voice_selector.png)
 
 Implementation Journey:
 * Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+* Logged thought process (Minimalist approach chosen).
+* Updated `VoicePicker.tsx` to include a `handleShuffle` function that picks a random voice from the currently filtered list.
+* Added a `Dices` icon button next to the gender filter pills, matching the existing UI style.
+* Verified functionality locally using a Playwright script and Next.js development server.
+* Ran lint and build to ensure no regressions.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+* Assumption: Users may suffer from choice paralysis given multiple high-quality voices. A random selector aids discovery.
+* Approaches considered:
+  1. Standard: Add a button in the main page.tsx that calls a function exposed by VoicePicker. Complex because state lives in both.
+  2. Minimalist (Chosen): Add a "Shuffle" button directly inside the VoicePicker component next to the gender filters. Selects a random voice from the currently filtered view. Simplest, self-contained, high visibility.
+  3. Lateral: Add a "Surprise Me" option as an actual voice entry at the top of the list that randomly assigns a voice at generation time. Harder to preview, hides the actual voice being used.
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` directory.
 2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
+3. In the "Voice Model" section, locate the dice icon next to the "Male"/"Female"/"All" filter.
+4. Click the dice icon.
+5. Verify that a random voice in the list is selected.
+6. Change the gender filter (e.g., to "Female") and click the dice again. Verify it only selects female voices.
 
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+Action Item: git push origin feature/random-voice-selector && gh pr create -F pr_manifest.md
