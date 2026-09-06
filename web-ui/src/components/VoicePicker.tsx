@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Square, Loader2, Check } from 'lucide-react';
+import { Play, Square, Loader2, Check, Dices } from 'lucide-react';
 
 interface Voice {
   id: string;
@@ -107,9 +107,15 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
     genderFilter === 'All' || voice.gender === genderFilter
   );
 
+  const handleShuffle = () => {
+    if (filteredVoices.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * filteredVoices.length);
+    onVoiceSelect(filteredVoices[randomIndex].id);
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex bg-gray-100 p-1 rounded-lg">
+      <div className="flex bg-gray-100 p-1 rounded-lg gap-1">
         {(['All', 'Female', 'Male'] as const).map((filter) => (
           <button
             key={filter}
@@ -125,6 +131,14 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
             {filter}
           </button>
         ))}
+        <div className="w-[1px] bg-gray-300 my-1 mx-0.5"></div>
+        <button
+          onClick={handleShuffle}
+          className="px-3 py-1.5 text-gray-500 hover:text-blue-600 hover:bg-white rounded-md transition-all flex items-center justify-center"
+          title="Random Voice"
+        >
+          <Dices className="w-4 h-4" />
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
