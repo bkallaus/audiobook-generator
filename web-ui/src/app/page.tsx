@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, RotateCcw } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -54,6 +54,25 @@ export default function Home() {
     },
     maxFiles: 1
   });
+
+  const handleReset = () => {
+    if (abortController) {
+      abortController.abort();
+      setAbortController(null);
+    }
+    setFile(null);
+    setTextInput('');
+    setVoice('af_heart');
+    setSpeed(1.0);
+    setFormat('m4b');
+    setStatus('');
+    setProgress(0);
+    setDownloadUrl(null);
+    setError(null);
+    setElapsedTime(0);
+    setEstimatedTimeRemaining(null);
+    setLoading(false);
+  };
 
   const handleGenerate = async () => {
     if (inputMode === 'file' && !file) return;
@@ -184,13 +203,21 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
       <div className="max-w-5xl mx-auto">
-        <header className="mb-10 text-center">
+        <header className="mb-10 text-center relative flex flex-col items-center">
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
             Kokoro Audiobook Generator
           </h1>
           <p className="text-gray-500 mt-3 text-lg">
             High-performance local TTS. Convert EPUBs or Text to Audiobooks with parallel processing.
           </p>
+          <button
+            onClick={handleReset}
+            className="absolute top-0 right-0 p-2 text-gray-500 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-full shadow-sm transition-all flex items-center gap-2 border border-gray-200 text-sm font-medium"
+            title="Reset All"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span className="hidden sm:inline">Reset</span>
+          </button>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
