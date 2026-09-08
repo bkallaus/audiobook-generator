@@ -36,6 +36,7 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [autoplay, setAutoplay] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -333,6 +334,19 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Autoplay Selection */}
+              <div className="flex items-center gap-2 mt-4">
+                <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={autoplay}
+                    onChange={(e) => setAutoplay(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 rounded"
+                  />
+                  <span className="font-medium text-gray-700">Autoplay when finished</span>
+                </label>
+              </div>
+
               {/* Action Button */}
               {!loading ? (
                 <button
@@ -442,7 +456,7 @@ export default function Home() {
                     </a>
                   </div>
 
-                  <audio controls src={downloadUrl} className="w-full mt-2" />
+                  <audio autoPlay={autoplay} controls src={downloadUrl} className="w-full mt-2" />
                 </div>
               )}
             </div>

@@ -1,0 +1,31 @@
+PR Title: feat: Autoplay Audiobook on Completion
+
+The Problem Solved: Users previously had to manually press play to listen to their generated audiobook after waiting for the process to finish. This feature provides an opt-in toggle to automatically start playback immediately upon successful generation, improving convenience and user experience.
+
+Visuals:
+- [Autoplay Checkbox UI](/home/jules/verification/screenshots/autoplay-checkbox.png)
+- [Autoplay Result View](/home/jules/verification/screenshots/autoplay-result.png)
+
+Implementation Journey:
+- Added `autoplay` boolean state hook in `web-ui/src/app/page.tsx`
+- Injected an "Autoplay when finished" checkbox below the format selection block
+- Bound the `autoplay` state directly to the `autoPlay` attribute on the resulting HTML5 `<audio>` tag
+- Verified via Playwright that checking the box successfully propagates the attribute to the DOM element after generation
+
+Tradeoffs & Assumptions:
+- **Interpretations made**: The request implied a user choice rather than forced behavior. Thus, an explicit opt-in checkbox was prioritized.
+- **Brainstormed Paths**:
+  1. *Standard*: Add a React `useState` for `autoplay`, add a checkbox to control it, and pass it down as `autoPlay={autoplay}` on the `<audio>` tag.
+  2. *Minimalist*: Force-enable `autoPlay` across the board unconditionally. (Rejected due to potential UX degradation for users who process audio in the background).
+  3. *Lateral*: Play audio programmatically via a new `Audio()` object in the success handler instead of binding to the UI element. (Rejected to keep state synchronized purely via declarative React).
+- **Chosen Route**: Path 1 (Standard). Safest, declarative, and provides user agency matching existing configuration options.
+
+Testing Instructions:
+1. Navigate to the `web-ui` folder and start the dev server (`npm run dev`).
+2. Open `http://localhost:3000` in your browser.
+3. Upload a small text or EPUB file (or paste text into the Text Input area).
+4. Check the new "Autoplay when finished" checkbox.
+5. Click "Start Generation".
+6. Observe that once generation is complete, the `<audio>` element appears and immediately begins playing the output file.
+
+Action Item: `git push -u origin feature/autoplay-on-completion && gh pr create --title "feat: Autoplay Audiobook on Completion" --body-file pr_manifest.log`
