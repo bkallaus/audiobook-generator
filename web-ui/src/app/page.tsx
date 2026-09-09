@@ -35,7 +35,18 @@ export default function Home() {
     };
   }, [loading]);
   const [textInput, setTextInput] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(textInput);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text', err);
+    }
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -268,6 +279,16 @@ export default function Home() {
                           return m > 0 ? `${m}m ${s}s` : `${s}s`;
                         })()}
                       </span>
+                    )}
+                    {textInput.length > 0 && (
+                      <button
+                        onClick={handleCopyText}
+                        className={`text-xs font-medium bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100 ${
+                          isCopied ? 'text-blue-600' : 'text-gray-500 hover:text-blue-500'
+                        }`}
+                      >
+                        {isCopied ? 'Copied!' : 'Copy'}
+                      </button>
                     )}
                     {textInput.length > 0 && (
                       <button
