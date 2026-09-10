@@ -13,6 +13,7 @@ export default function Home() {
   const [status, setStatus] = useState<string>('');
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [fileSize, setFileSize] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -42,6 +43,7 @@ export default function Home() {
       setFile(acceptedFiles[0]);
       setError(null);
       setDownloadUrl(null);
+      setFileSize(null);
       setStatus('File selected ready for generation.');
     }
   }, []);
@@ -66,6 +68,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setDownloadUrl(null);
+    setFileSize(null);
     setStatus('Initializing generation...');
     setProgress(0);
     setStartTime(Date.now());
@@ -135,6 +138,7 @@ export default function Home() {
             } else if (data.type === 'result') {
               if (data.success) {
                 setDownloadUrl(data.downloadUrl);
+                if (data.fileSize) setFileSize(data.fileSize);
                 setStatus('Generation complete!');
                 setProgress(100);
                 if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
@@ -429,7 +433,10 @@ export default function Home() {
                       </div>
                       <div>
                         <h3 className="font-bold text-green-800">Ready for Download</h3>
-                        <p className="text-xs text-green-600">Audiobook successfully generated</p>
+                        <p className="text-xs text-green-600">
+                          Audiobook successfully generated
+                          {fileSize && ` • ${(fileSize / 1024 / 1024).toFixed(2)} MB`}
+                        </p>
                       </div>
                     </div>
 

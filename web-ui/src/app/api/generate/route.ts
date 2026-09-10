@@ -253,11 +253,13 @@ export async function POST(req: NextRequest) {
                 );
 
                 // 5. Return Result
+                const stat = await fs.promises.stat(outputPath);
                 const downloadUrl = `/downloads/${path.basename(outputPath)}`;
                 sendEvent({
                     type: 'result',
                     success: true,
                     downloadUrl,
+                    fileSize: stat.size,
                     stats: {
                         chapters: chapters.length,
                         duration: 'Unknown'
