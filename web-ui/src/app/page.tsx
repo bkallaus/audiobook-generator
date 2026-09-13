@@ -308,27 +308,37 @@ export default function Home() {
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="format"
-                      value="m4b"
-                      checked={format === 'm4b'}
-                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="font-medium text-gray-700">M4B (Audiobook)</span>
+                  <label className={`flex flex-col gap-1 cursor-pointer p-3 border rounded-lg w-full transition-colors ${format === 'm4b' ? 'border-blue-300 bg-blue-50/50 ring-1 ring-blue-300' : 'border-gray-200 hover:bg-gray-50 hover:border-blue-200'}`}>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="m4b"
+                        checked={format === 'm4b'}
+                        onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <span className={`font-medium ${format === 'm4b' ? 'text-blue-900' : 'text-gray-700'}`}>M4B (Audiobook)</span>
+                    </div>
+                    <p className="text-xs text-gray-500 pl-6 leading-relaxed">
+                      Supports chapter markers and saves playback position. Best for long books.
+                    </p>
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="format"
-                      value="mp3"
-                      checked={format === 'mp3'}
-                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
-                      className="w-4 h-4 text-blue-600"
-                    />
-                    <span className="font-medium text-gray-700">MP3 (Flat)</span>
+                  <label className={`flex flex-col gap-1 cursor-pointer p-3 border rounded-lg w-full transition-colors ${format === 'mp3' ? 'border-blue-300 bg-blue-50/50 ring-1 ring-blue-300' : 'border-gray-200 hover:bg-gray-50 hover:border-blue-200'}`}>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="format"
+                        value="mp3"
+                        checked={format === 'mp3'}
+                        onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
+                        className="w-4 h-4 text-blue-600"
+                      />
+                      <span className={`font-medium ${format === 'mp3' ? 'text-blue-900' : 'text-gray-700'}`}>MP3 (Flat)</span>
+                    </div>
+                    <p className="text-xs text-gray-500 pl-6 leading-relaxed">
+                      Universal standard audio file. Does not support chapters or bookmarking.
+                    </p>
                   </label>
                 </div>
               </div>

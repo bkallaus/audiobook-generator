@@ -1,30 +1,28 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Format Info Descriptions
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: Users often don't know the practical difference between M4B and MP3 output formats. This adds helpful subtext describing the tradeoffs (chapter support vs standard flat audio) directly underneath the radio selections, along with visually highlighting the active selection using a blue border and background to make the active state obvious.
 
 Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+![M4B Selected](/home/jules/verification/screenshots/format-m4b-selected.png)
+![MP3 Selected](/home/jules/verification/screenshots/format-mp3-selected.png)
 
 Implementation Journey:
-* Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+* Confirmed no existing branches tackled this specific UI/UX enhancement.
+* Updated `page.tsx` format selection area to use a vertical flex layout.
+* Added concise descriptive paragraphs for M4B and MP3.
+* Implemented dynamic Tailwind CSS classes to highlight the selected format option.
+* Verified the visual changes locally using a Playwright script.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+* Assumption: Users want to know the difference between the formats without navigating away from the form or hovering over obscure icons.
+* Standard Approach: Tooltips on hover.
+* Minimalist Approach (Chosen): Inline subtext and enhanced active state styling. This avoids hiding critical information and takes advantage of the horizontal space efficiently.
+* Lateral Approach: A single toggle switch (M4B / MP3) with dynamic help text displayed below.
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` directory.
 2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
+3. In the "Output Format" section, observe the new descriptive text below "M4B (Audiobook)" and "MP3 (Flat)".
+4. Click between the two options and verify the blue border and background highlight properly shifts to the selected format.
 
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+Action Item: git push origin feature/format-descriptions && gh pr create -F pr_manifest.md
