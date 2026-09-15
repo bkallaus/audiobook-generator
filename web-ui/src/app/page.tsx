@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, RotateCcw } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -341,10 +341,20 @@ export default function Home() {
                   className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all transform hover:-translate-y-0.5
                     ${(inputMode === 'file' && !file) || (inputMode === 'text' && !textInput.trim())
                       ? 'bg-gray-300 cursor-not-allowed shadow-none'
+                      : error
+                      ? 'bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 hover:shadow-orange-200'
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 hover:shadow-blue-200'}
                   `}
                 >
-                  <Play className="w-5 h-5 fill-current" /> Start Generation
+                  {error ? (
+                    <>
+                      <RotateCcw className="w-5 h-5" /> Retry Generation
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-5 h-5 fill-current" /> Start Generation
+                    </>
+                  )}
                 </button>
               ) : (
                 <button
