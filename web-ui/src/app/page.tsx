@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
@@ -21,6 +21,8 @@ export default function Home() {
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (loading) {
@@ -36,6 +38,13 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [textInput]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -251,10 +260,11 @@ export default function Home() {
               ) : (
                 <div className="relative">
                   <textarea
+                    ref={textareaRef}
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="Paste your text here..."
-                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                    className="w-full min-h-[12rem] max-h-[30rem] overflow-y-auto p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
                   />
                   <div className="absolute bottom-2 right-2 flex gap-2">
                     {textInput.trim().length > 0 && (
