@@ -1,30 +1,28 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Auto-Resizing Textarea for Text Input
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: Users pasting large amounts of text into the "Text Input" area were confined to a small, fixed-height box, making it difficult to review or edit their text. This feature introduces a dynamically resizing textarea that grows with the content, providing a vastly improved reading and editing experience.
 
 Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+![Auto-Resizing Textarea](/home/jules/verification/textarea_resize.png)
 
 Implementation Journey:
 * Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+* Added `useRef` and `useEffect` to `page.tsx` to monitor `textInput` changes.
+* Dynamically set the `textarea` inline height to `scrollHeight`.
+* Replaced fixed `h-48` Tailwind class with `min-h-[12rem]`, `max-h-[30rem]`, and `overflow-y-auto` to cap the growth and allow scrolling beyond the maximum height.
+* Verified UI locally using a Playwright script.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+* Assumption: Users want the textarea to expand but not infinitely, to avoid breaking the page layout.
+* Standard Approach: Simple inline style updates via `useEffect`.
+* Minimalist Approach (Chosen): Combined `useEffect` with Tailwind `max-h-[30rem]` which relies on CSS constraints rather than complex JS measurement logic to enforce the ceiling.
+* Lateral Approach: Using a `contenteditable` div (discarded as it breaks React's native controlled input binding too easily).
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` directory.
 2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
+3. Switch to the "Text Input" mode.
+4. Paste a large block of text (multiple paragraphs).
+5. Verify the textarea expands vertically up to a reasonable maximum limit before showing a scrollbar.
 
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+Action Item: git push origin feature/auto-resizing-textarea && gh pr create -F pr_manifest.md
