@@ -270,12 +270,27 @@ export default function Home() {
                       </span>
                     )}
                     {textInput.length > 0 && (
-                      <button
-                        onClick={() => setTextInput('')}
-                        className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
-                      >
-                        Clear
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            const cleaned = textInput
+                              .split(/\n\s*\n/)
+                              .map(p => p.replace(/\s+/g, ' ').trim())
+                              .filter(p => p.length > 0)
+                              .join('\n\n');
+                            setTextInput(cleaned);
+                          }}
+                          className="text-xs font-medium text-gray-500 hover:text-blue-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          Clean Format
+                        </button>
+                        <button
+                          onClick={() => setTextInput('')}
+                          className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          Clear
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
