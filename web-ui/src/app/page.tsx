@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
+  const outputRef = useRef<HTMLDivElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [voice, setVoice] = useState('af_heart');
   const [speed, setSpeed] = useState(1.0);
@@ -67,6 +68,10 @@ export default function Home() {
     setError(null);
     setDownloadUrl(null);
     setStatus('Initializing generation...');
+
+    setTimeout(() => {
+      outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
     setProgress(0);
     setStartTime(Date.now());
     setEstimatedTimeRemaining(null);
@@ -365,7 +370,7 @@ export default function Home() {
           </div>
 
           {/* Output Section */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-full">
+          <div ref={outputRef} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden flex flex-col h-full">
             <div className="p-6 bg-gray-50 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <FileAudio className="w-5 h-5 text-indigo-500" /> Output Console
