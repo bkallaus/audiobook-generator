@@ -10,10 +10,10 @@ export default function Home() {
   const [voice, setVoice] = useState('af_heart');
   const [speed, setSpeed] = useState(1.0);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<string>('');
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [statusLog, setStatusLog] = useState<{time: Date, msg: string}[]>([]);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
@@ -42,7 +42,6 @@ export default function Home() {
       setFile(acceptedFiles[0]);
       setError(null);
       setDownloadUrl(null);
-      setStatus('File selected ready for generation.');
     }
   }, []);
 
@@ -66,7 +65,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setDownloadUrl(null);
-    setStatus('Initializing generation...');
+    setStatusLog([{time: new Date(), msg: 'Initializing generation...'}]);
     setProgress(0);
     setStartTime(Date.now());
     setEstimatedTimeRemaining(null);
@@ -85,7 +84,7 @@ export default function Home() {
     formData.append('format', format);
 
     try {
-      setStatus('Uploading and processing...');
+      setStatusLog(prev => [...prev, { time: new Date(), msg: 'Uploading and processing...' }]);
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -113,7 +112,7 @@ export default function Home() {
             const data = JSON.parse(line);
 
             if (data.type === 'progress') {
-              setStatus(`Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle}`);
+              setStatusLog(prev => [...prev, { time: new Date(), msg: `Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle}` }]);
               setProgress(data.progress);
 
               if (data.processedCharacters && data.totalCharacters && startTime) {
@@ -131,11 +130,11 @@ export default function Home() {
                 }
               }
             } else if (data.type === 'status') {
-              setStatus(data.message);
+              setStatusLog(prev => [...prev, { time: new Date(), msg: data.message }]);
             } else if (data.type === 'result') {
               if (data.success) {
                 setDownloadUrl(data.downloadUrl);
-                setStatus('Generation complete!');
+                setStatusLog(prev => [...prev, { time: new Date(), msg: 'Generation complete!' }]);
                 setProgress(100);
                 if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
                   new Notification('Audiobook Generation Complete', {
@@ -144,7 +143,7 @@ export default function Home() {
                 }
               } else {
                 setError('Generation failed.');
-                setStatus('Failed.');
+                setStatusLog(prev => [...prev, { time: new Date(), msg: 'Failed.' }]);
                 if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
                   new Notification('Audiobook Generation Failed', {
                     body: 'An error occurred during generation.',
@@ -153,7 +152,7 @@ export default function Home() {
               }
             } else if (data.type === 'error') {
               setError(data.error);
-              setStatus('Error occurred.');
+              setStatusLog(prev => [...prev, { time: new Date(), msg: 'Error occurred.' }]);
               if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
                 new Notification('Audiobook Generation Error', {
                   body: data.error || 'An error occurred during generation.',
@@ -166,14 +165,14 @@ export default function Home() {
         }
       }
 
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         console.log('Request canceled');
-        setStatus('Generation stopped by user.');
+        setStatusLog(prev => [...prev, { time: new Date(), msg: 'Generation stopped by user.' }]);
       } else {
         console.error(err);
-        setError(err.message || 'An error occurred');
-        setStatus('Error occurred.');
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        setStatusLog(prev => [...prev, { time: new Date(), msg: 'Error occurred.' }]);
       }
     } finally {
       setLoading(false);
@@ -353,7 +352,7 @@ export default function Home() {
                       abortController.abort();
                       setAbortController(null);
                       setLoading(false);
-                      setStatus('Generation stopped by user.');
+                      setStatusLog(prev => [...prev, { time: new Date(), msg: 'Generation stopped by user.' }]);
                     }
                   }}
                   className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
@@ -392,11 +391,19 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="font-mono text-sm space-y-2">
-                    {error ? (
-                      <p className="text-red-400">Error: {error}</p>
-                    ) : status ? (
-                      <p className="text-blue-300 typing-effect">{status}</p>
+                  <div className="font-mono text-sm space-y-2 flex flex-col justify-end overflow-hidden min-h-[80px]">
+                    {statusLog.length > 0 ? (
+                      <>
+                        {statusLog.slice(-6).map((log, i, arr) => (
+                          <p key={i} className={i === arr.length - 1 && !error && loading ? 'text-blue-300 typing-effect' : 'text-gray-500'}>
+                            <span className="text-gray-600 text-xs mr-2">[{log.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                            {log.msg}
+                          </p>
+                        ))}
+                        {error && (
+                          <p className="text-red-400 mt-2">Error: {error}</p>
+                        )}
+                      </>
                     ) : (
                       <p className="text-gray-600 italic">Waiting for job...</p>
                     )}
