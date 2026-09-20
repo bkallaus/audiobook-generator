@@ -1,30 +1,33 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Prevent Accidental Generation Cancellation
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: Users could accidentally click the prominent "Stop Generation" button, instantly cancelling a long-running audiobook generation with no way to resume. This feature requires a secondary confirmation click within 3 seconds to ensure intent.
 
 Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+![Stop Confirm](/home/jules/verification/screenshots/confirm_stop_button.png)
 
 Implementation Journey:
 * Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+* Brainstormed approaches: Standard (`window.confirm`), Lateral (Slide to cancel), Minimalist (Inline state toggle).
+* Chose Minimalist approach for best UX.
+* Added `stopConfirm` boolean state to `Home` component.
+* Modified the "Stop Generation" button `onClick` handler to intercept the first click and set a 3-second reset timeout.
+* Updated the button styling (red-700 background and ring) and text ("Click again to confirm stop") to visually communicate the confirmation state.
+* Verified functionality locally using a Playwright script covering the timeout reset and actual abort flows.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+* Standard Approach: `window.confirm`. Rejected because it blocks the UI thread and feels outdated.
+* Lateral Approach: A "Hold to Stop" button. Rejected because holding on mobile/web can inadvertently trigger text selection or context menus.
+* Minimalist Approach (Chosen): Inline state toggle. Fits perfectly into the existing flow and requires only local state changes without external libraries.
+* Assumption: 3 seconds is enough time for a user to read the confirmation and click again if intended, but short enough to auto-dismiss if accidental.
 
 Testing Instructions:
 1. Run `npm run dev` in the `web-ui` directory.
 2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
+3. Switch to "Text Input", paste some text, and click "Start Generation".
+4. While generating, click "Stop Generation".
+5. Verify the button turns darker red with a ring and says "Click again to confirm stop".
+6. Wait 3 seconds and verify it resets.
+7. Click "Stop Generation" again, then click it a second time immediately.
+8. Verify the generation actually stops and the status updates to "Generation stopped by user."
 
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+Action Item: git checkout -b feature/prevent-accidental-cancellation && git add web-ui/src/app/page.tsx && git commit -m "feat: Prevent Accidental Generation Cancellation" && gh pr create -F pr_manifest.md

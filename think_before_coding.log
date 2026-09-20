@@ -1,0 +1,742 @@
+=== Brainstorming Next Feature ===
+Existing features:
+- voice gender filter (recently added)
+- estimated audio duration
+- format descriptions
+- speed presets
+- voice favorites
+- terminal status history log
+... and many others based on branch list.
+
+We need a net-new feature, let's implement "voice search filter" or something similar if it's not actually implemented?
+Wait, looking at the branch list: `remotes/origin/feature/voice-search-filter-5752251865360839106` already exists.
+What about "recent-generations-history"? Also exists.
+
+Let's do something not on the branch list:
+1. "Dark Mode Toggle"
+2. "Output Filename Customization" (wait, `custom-output-title` exists)
+3. "Save/Load Settings" (wait, `persist-settings` exists)
+4. "Pause/Resume Generation" (Might be tricky given the backend, it uses parallel processing and ffmpeg merge, maybe complex)
+5. "Voice Accent Filter" (`voice-accent-filter` exists)
+6. "Export/Download Generation Log" (A button to download the console logs as a txt file)
+
+Let's check if "Export/Download Generation Log" exists.
+`git branch -a | grep log` -> `terminal-status-history-log`.
+Does it include export? Unlikely, but let's see.
+
+Another idea: "Word count/character count display for text input"
+`character-count` exists.
+
+Another idea: "Clear text input button"
+`clear-text-button` exists.
+
+Another idea: "Drag and drop text file directly into textarea"
+`drag-drop-txt-into-textarea` exists.
+
+Another idea: "Copy text to clipboard"
+`copy-text-clipboard` exists.
+
+Another idea: "Download Status Text" - wait, let's check what's in `web-ui/src/app/page.tsx` right now.
+It has a text input, dropzone, voice picker, format, speed, generate button.
+What if we add a **"Volume Control" for the Audio Player** when generation is complete?
+The default HTML5 `<audio>` player has volume, but it's part of the browser's native controls.
+
+What about **"Download File Size Indicator"**?
+Wait, `show-generated-file-size` exists.
+
+What about **"Play/Pause hotkey for sample voice"**?
+
+Let's look closely at `web-ui/src/app/page.tsx`.
+
+It uses `VoicePicker` which has a play button to sample the voice.
+Is there a way to search voices? Wait, `voice-search-filter` exists in branches, but is it merged into main?
+Let's check `git log -n 50 --oneline`.
+Wait, so only one branch was merged to main (`estimated-audio-duration`)?
+No, the local clone probably just has 1 commit. Let's look at `git log --all --graph --oneline`.
+Since I'm looking for a net-new feature, let me pick something that doesn't conflict with any remote branches.
+
+Ideas:
+1. **Download Generation Log (Export Logs)**: Allow user to download the generated status logs as a text file for debugging/record keeping.
+2. **Auto-Download Checkbox**: A checkbox "Automatically download when complete". If checked, it programmatically triggers a click on the download link when generation is complete. Wait, `auto-download-completion` exists.
+3. **Play Audio When Complete Checkbox**: A checkbox "Play audio when generation is complete". Wait, `autoplay-on-completion` exists.
+4. **Copy Output URL to Clipboard**: A quick copy button next to the download button.
+5. **Drag and drop EPUB file into text area**: `drag-drop-txt-into-textarea` exists.
+6. **Mute/Unmute Audio Samples Checkbox** or volume control for sample play?
+7. **Character limit warning**: If the text input goes over a certain limit, show a warning. (Is there a limit? Kokoro doesn't strictly have one if chunked properly).
+8. **Share on Twitter/X**: A button to share the app. (Not very useful locally).
+9. **Remove/Clear selected file button**: When a file is selected via Dropzone, there's no easy way to remove it other than refreshing or clicking dropzone again. Wait, `clear-selected-file-nova` exists.
+10. **Show Current/Total Chunks processed**: The progress already shows Chapter index/Total.
+11. **Text Area Character Count & Word Count Toolbar**: `character-count` exists.
+12. **Scroll to Top/Bottom of output console**: The output console is currently fixed size and doesn't seem to scroll its contents? No, it just updates the status text. Wait, `auto-scroll-to-output-console` exists.
+13. **Generate Another Button**: After a successful generation, show a "Generate Another" button that resets the state so the user doesn't have to refresh or manually clear things. Wait, `global-app-reset-button` exists.
+14. **Custom output file name input**: `custom-output-title` exists.
+15. **Retry Generation Button**: `retry-generation-button` exists.
+16. **Text Input formatting preservation toggle**: ...
+17. **Download as Zip**: ...
+
+Let's check the branches again and find something completely unique.
+Branches:
+- auto-download-completion
+- auto-resizing-textarea
+- auto-scroll-to-output-console
+- autoplay-on-completion
+- browser-notifications-on-completion
+- character-count
+- clean-format-button
+- clear-selected-file-nova
+- clear-text-button
+- copy-text-clipboard
+- custom-output-title
+- drag-drop-txt-into-textarea
+- dropzone-rejection-feedback
+- dynamic-title-progress
+- estimated-audio-duration
+- format-descriptions
+- global-app-reset-button
+- inline-audio-preview
+- insert-sample-text
+- keyboard-shortcut-start-stop
+- persist-settings
+- prevent-accidental-navigation
+- random-voice-selector
+- recent-generations-history
+- retry-generation-button
+- show-generated-file-size
+- show-generation-time-stats
+- speed-presets
+- terminal-status-history-log
+- voice-accent-filter
+- voice-favorites
+- voice-gender-filter
+- voice-sample-caching
+- voice-search-filter
+
+Idea 1: **"Copy Status Log to Clipboard"**
+A small button inside the Output Console (like a `Copy` icon) that copies the current `status` and `error` texts to the clipboard. Useful if someone gets an error and wants to share it.
+
+Idea 2: **"Audiobook Input Mode Tabs Persistence"**
+If you switch between 'File Upload' and 'Text Input', it remembers it in localStorage? `persist-settings` might do this.
+
+Idea 3: **"Minimize/Collapse Input Section"**
+Once the generation starts, collapse the input section to focus entirely on the output console. And expand again if stopped/errored.
+
+Idea 4: **"Dark Mode Support"**
+A toggle to switch the app to dark mode. It's a Tailwind app, so it's a bit of work but very standard.
+
+Idea 5: **"Text Input Sentence/Paragraph chunking estimate"**
+Show roughly how many chunks Kokoro will process based on paragraphs. (Too complex)
+
+Idea 6: **"Export/Download Console Log as .txt file"**
+A simple "Download Log" button in the Output Console header. When clicked, it downloads a `.txt` file containing the last known status, error, and elapsed time.
+
+Idea 7: **"Download both Formats Option"**
+Right now it's radio buttons for M4B or MP3. What if there is a "Zip" option? Not asked.
+
+Idea 8: **"Pause/Resume Audio in Output"**
+The native audio element has play/pause.
+
+Idea 9: **"Time Remaining Progress Bar in Document Title"**
+`dynamic-title-progress` exists.
+
+Idea 10: **"Confirmation dialog before Stopping Generation"**
+If the user clicks "Stop Generation", show a `window.confirm()` so they don't accidentally stop a 10-minute job.
+
+Let's do **Idea 10: Confirmation before stopping generation**.
+Wait, the user might want a fast stop. Is it annoying?
+What about **"Focus Mode / Fullscreen Output Console"**?
+
+Let's do **"Copy Error/Status to Clipboard"**.
+In the "Output Console", next to the "Status Log", add a small `Copy` button. When clicked, it copies the `status`, `error`, `progress`, and `elapsedTime` to clipboard.
+
+Let's review the code for the Output Console header:
+```tsx
+<div className="flex justify-between items-center border-b border-gray-800 pb-2">
+  <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
+  <div className="flex gap-4">
+    {/* Elapsed / ETA */}
+  </div>
+</div>
+```
+If I add a copy button here:
+```tsx
+<button onClick={copyLogToClipboard} className="text-gray-400 hover:text-white" title="Copy Log">
+  <Copy className="w-3 h-3" />
+</button>
+```
+
+Is there a better, more distinct feature?
+What about **"Audio Playback Speed Control" for the Generated File**?
+Once the file is generated, the `<audio>` tag is displayed. It's just `<audio controls src={downloadUrl} className="w-full mt-2" />`.
+I could add a custom speed selector for the `<audio>` element (like 1x, 1.5x, 2x) next to the download button.
+
+Wait! The generated audio audiobook/mp3 already plays in the browser via the standard `controls`. Most standard browser audio players include a playback rate menu nowadays (Chromium does).
+
+What about **"Rename File before Download"**?
+Wait, `custom-output-title` exists.
+
+What about **"Voice Detail Tooltip/Modal"**?
+Show information about the voice (e.g. "Bella - Soft, calming voice"). But Kokoro voices don't have descriptions, just gender/accent.
+
+What about **"Share Output via Web Share API"**?
+A button next to Download that uses `navigator.share({ title: 'Audiobook', url: downloadUrl })` if supported.
+
+What about **"File Upload Size Warning"**?
+If the user uploads an EPUB > 10MB, show a warning message "Large files may take a significant amount of time to process."
+
+Let's check if the Dropzone currently does this:
+```tsx
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const selected = acceptedFiles[0];
+      if (selected.size > 50 * 1024 * 1024) {
+        // Show error?
+      }
+      setFile(selected);
+...
+```
+Actually, a **"Toggle Advanced Options"** accordion to hide "Speed" and "Output Format" by default? They are already nicely laid out.
+
+What about **"Word Count & Estimated Duration for File Input"**?
+Currently, if you paste text, it calculates word count and duration:
+```tsx
+const words = textInput.trim().split(/\s+/).filter(w => w.length > 0).length;
+const secs = (words / 150 * 60) / speed;
+```
+But if you upload a file, it just says "File selected ready for generation." It doesn't show file size or estimated time before generation!
+I can parse the file size and show it, e.g., "File selected: alice_in_wonderland.epub (2.4 MB)".
+
+Wait, right now it just sets `status` to `File selected ready for generation.`
+If I look at `web-ui/src/app/page.tsx`:
+```tsx
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      setFile(acceptedFiles[0]);
+      setError(null);
+      setDownloadUrl(null);
+      setStatus('File selected ready for generation.');
+    }
+  }, []);
+```
+And where is the file displayed?
+It's inside the Dropzone!
+Let's see what the Dropzone renders:
+```bash
+cat web-ui/src/app/page.tsx | grep -A 20 "isDragActive"
+```
+Let's check this.
+Okay, the Dropzone DOES show file size already!
+`<p className="text-sm text-green-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p>`
+
+Let's look for another feature.
+
+Idea 11: **Keyboard Shortcut to Start/Stop Generation** (Cmd+Enter or Ctrl+Enter)
+Wait, `keyboard-shortcut-start-stop` exists in the remote branch list!
+
+Idea 12: **"Audio Format Warning"**
+If `mp3` is selected, show a small warning: "MP3 does not support chapter markers. For audiobooks with chapters, select M4B."
+
+Idea 13: **"Recent Generations History Sidebar"**
+Wait, `recent-generations-history` exists!
+
+Idea 14: **"Output Console Log Auto-scroll"**
+Wait, `auto-scroll-to-output-console` exists!
+
+Idea 15: **"Text Input Sample Text Button"**
+Wait, `insert-sample-text` exists!
+
+Idea 16: **"Auto-resize Textarea"**
+Wait, `auto-resizing-textarea` exists!
+
+Idea 17: **"Download both files Option"**?
+No, Kokoro generates either M4B or MP3.
+
+Idea 18: **"Copy Status Log to Clipboard Button"**
+This doesn't seem to exist in the branches. I'll search for `clipboard` and `copy` in the branch names.
+`copy-text-clipboard` exists, which probably copies the text input.
+But what about the output log?
+Let's just implement: **"Clear Output Console Button"**.
+Wait, the output console is fully controlled by the React state (`status`, `progress`, `error`, `elapsedTime`). It resets on generation start anyway.
+
+Idea 19: **"Time Elapsed formatting"**
+The time elapsed is currently formatted as: `Math.floor(elapsedTime / 60)}:{(elapsedTime % 60).toString().padStart(2, '0')}`.
+
+Idea 20: **"Copy Output Status Log to Clipboard"**
+This is a small, useful feature. Add a "Copy Log" button to the Output Console header that copies the error or status to the clipboard.
+Actually, wait, the Output Console just shows the *current* status, not the whole log.
+`status` is just a string, e.g., "Processing Chapter 1/5: Chapter 1".
+Wait, so `terminal-status-history-log` exists in branches, which probably changed it to be an array of logs!
+But wait, in `main` (which I'm working off), it's just a string.
+
+Let's do **Idea 21: "Remove/Clear selected file button"**
+Wait, `clear-selected-file-nova` exists.
+
+Let's do **Idea 22: "Toggle Advanced Settings"**
+Wrap the VoicePicker, Speed, and Format in an "Advanced Settings" `<details>` or toggleable div, keeping the UI even simpler.
+Actually, the UI is already very simple.
+
+Let's do **Idea 23: "Play/Pause Sample Voice Audio" Global Mute** or something.
+In `VoicePicker.tsx`, clicking the play button plays the sample. If the user clicks play on another voice, it stops the current one and plays the new one. That works well.
+
+Let's do **Idea 24: "Time Remaining (ETA) for Text Input Mode"**
+Right now, ETA is only calculated during generation if there is `processedCharacters` and `totalCharacters`.
+Wait, before generation, when a user pastes text, it shows an estimated duration:
+```tsx
+const words = textInput.trim().split(/\s+/).filter(w => w.length > 0).length;
+const secs = (words / 150 * 60) / speed;
+```
+This is the duration of the *resulting audio*, not the generation time!
+Ah! "Estimated Audio Duration"!
+Wait, `estimated-audio-duration` branch was merged in commit `27c5569`!
+
+What about **"Show Generated File Size"**?
+Wait, `show-generated-file-size` exists!
+
+Let's look at the `VoicePicker.tsx` again.
+```tsx
+<div className="flex bg-gray-100 p-1 rounded-lg">
+  {(['All', 'Female', 'Male'] as const).map((filter) => (
+    <button ...>
+```
+So gender filter is there.
+
+What about **"Voice Search Filter"**?
+`voice-search-filter` exists.
+
+What about **"Voice Accent Filter"**?
+`voice-accent-filter` exists.
+
+What about **"Random Voice Selector"**?
+`random-voice-selector` exists.
+
+What about **"Voice Favorites"**?
+`voice-favorites` exists.
+
+Let's think. What is a completely unique feature that is missing from Kokoro Web UI?
+1. **"Text Input: Clear formatting/newlines"** (A button to remove all newlines and extra spaces from the pasted text). This is useful because bad OCR or PDF pasting has weird line breaks.
+Let's call it **"Clean Text Formatting"** button!
+Wait, `clean-format-button` exists.
+
+Okay, what about **"Dark Mode"**?
+I will add a Dark Mode toggle! Next.js and Tailwind.
+Wait, that might be too large and I might miss some classes.
+
+What about **"Download Output as ZIP"**?
+If the user checks a box "Zip Output", the backend zips the mp3/m4b and returns it? Too complex.
+
+What about **"Open Output folder"**? (Not possible from browser).
+
+What about **"Generate Audio from URL"**?
+Paste a URL (like a Wikipedia article or a blog post), the server fetches it, extracts text, and generates audio.
+That's a bit complex, but very useful. I don't want to add `jsdom` or `cheerio` right now if I don't have to.
+
+What about **"Text Input: Convert to Uppercase/Lowercase"**? Not very useful for TTS.
+
+What about **"Speed Presets"**?
+There's a range slider for speed. What if we add a few clickable preset chips (e.g. `0.8x`, `1.0x`, `1.2x`, `1.5x`) right below or next to the slider?
+Wait, `speed-presets` exists in branches!
+
+What about **"Format Descriptions"**?
+`format-descriptions` exists.
+
+What about **"Prevent Accidental Navigation"**?
+`prevent-accidental-navigation` exists.
+
+What about **"Dropzone Rejection Feedback"**?
+`dropzone-rejection-feedback` exists.
+
+What about **"Global App Reset Button"**?
+`global-app-reset-button` exists.
+
+What about **"Show Generation Time Stats"**?
+`show-generation-time-stats` exists.
+
+Wow, every single idea I come up with seems to be a branch already! Let me look at the branch list very carefully.
+
+Branches:
+- auto-download-completion
+- auto-resizing-textarea
+- auto-scroll-to-output-console
+- autoplay-on-completion
+- browser-notifications-on-completion
+- character-count
+- clean-format-button
+- clear-selected-file-nova
+- clear-text-button
+- copy-text-clipboard
+- custom-output-title
+- drag-drop-txt-into-textarea
+- dropzone-rejection-feedback
+- dynamic-title-progress
+- estimated-audio-duration
+- format-descriptions
+- global-app-reset-button
+- inline-audio-preview
+- insert-sample-text
+- keyboard-shortcut-start-stop
+- persist-settings
+- prevent-accidental-navigation
+- random-voice-selector
+- recent-generations-history
+- retry-generation-button
+- show-generated-file-size
+- show-generation-time-stats
+- speed-presets
+- terminal-status-history-log
+- voice-accent-filter
+- voice-favorites
+- voice-gender-filter
+- voice-sample-caching
+- voice-search-filter
+
+Okay, what's NOT on this list?
+- **"Toggle Output Format Advanced Options"**
+- **"Confirmation Modal on Stop"** (Stop Generation Confirmation)
+- **"Collapse Input Section during generation"**
+- **"Text Area Font Size Toggle"** (Make text area font bigger/smaller for accessibility)
+- **"Share Button"** (Share the download link or the app itself)
+- **"Audio Player Volume Control"**
+- **"Pause/Resume Audio in Output"** (A play/pause button for the generated audio that is custom, but standard audio controls have it).
+- **"Change Voice List to Grid View"** (Toggle between List and Grid view for voices).
+- **"Text Input Sentence Counter"** (We have `character-count`, but what about sentences?)
+- **"Word/Character Limit Warning"**
+- **"Copy Output URL to Clipboard Button"**
+- **"Read Aloud (Preview) first paragraph"** before generating the whole file. (A "Preview Generation" button that only generates the first 500 characters).
+
+**"Preview First Paragraph"** is an AWESOME feature!
+If you upload an EPUB or paste 10,000 words, you might not be sure if the Voice and Speed are exactly what you want. Generating the whole book takes 5 minutes.
+Adding a **"Preview Voice Settings (First 500 chars)"** button that just does a quick generation and plays it.
+Wait, Kokoro already has Voice Samples via `VoicePicker`. But the sample text is hardcoded on the backend (`/api/sample`).
+If we want a custom preview, we'd need a new button "Test settings on input".
+But maybe that's too complex.
+
+Let's do a much simpler, incredibly safe UI feature:
+**"Copy Download Link to Clipboard"**
+When the generation is complete and the download link is available, provide a quick "Copy Link" button next to the "Download" button.
+Sometimes users want to copy the `/api/generate/download/xyz.m4b` link to paste into a downloader, or share with someone on the same network.
+Actually, wait... the download link is a temporary blob or local file path?
+Let's check what `data.downloadUrl` is.
+Wait, let's look at `data.downloadUrl` in `api/generate/route.ts`... I don't have that file listed yet, but usually it returns a URL starting with `/api/download?file=...`
+
+Let's do **"Confirmation Modal on Stop Generation"**
+It's very simple, very useful, not on the branch list.
+Wait, what about **"Dark Mode"**?
+What about **"Progress Bar Pulse/Animation while processing"**? (It's already animated: `transition-all duration-300`).
+What about **"Output File Name Display"**? Right now it just says "Ready for Download. Audiobook successfully generated". It doesn't show the filename!
+Wait, `show-generated-file-size` probably added the size. Did it add the name?
+Let me check the `custom-output-title` branch. It probably added the name display too.
+
+Let's do **"Sticky Header for Output Console"**
+Let's do **"Toggle Advanced Options"** accordion in the UI.
+Actually, the UI isn't that cluttered.
+
+Let's do: **"File Drag and Drop Overlay"**.
+When the user drags a file over the whole page, show a massive overlay "Drop file here to upload".
+Right now, `react-dropzone` is only active on the small dropzone area.
+If you miss the target, the browser navigates to the file and you lose your app state! This is a classic and very annoying bug in web apps.
+Wait! `prevent-accidental-navigation` exists! It probably solved this exact issue or `beforeunload`.
+
+What about **"Focus Mode / Fullscreen Output Console"**?
+When generation starts, add a "Fullscreen" button to the Output Console to make it take up the whole screen.
+
+What about **"Keyboard Shortcuts Modal"**?
+Since `keyboard-shortcut-start-stop` exists, what about a little `?` button that opens a modal with all keyboard shortcuts? Overkill.
+
+What about **"Copy Status/Error Log to Clipboard"**?
+I will do this one. "Copy Error Log to Clipboard".
+If `error` is present, or `status` is present, provide a quick copy button so users can paste the exact error to GitHub issues.
+Let's name the feature branch `feature/copy-console-log-to-clipboard`.
+Wait, "terminal-status-history-log" might conflict if they refactored the console.
+But I will just implement it as "Copy Status Log" button on the top right of the "Status Log" header.
+
+Let's evaluate:
+Is there a better feature?
+**"Auto-dismiss Error Messages"**? (No, users need to read them).
+**"Download Button Icon"**? (It already has text "Download").
+**"Download Output Directory Selection"**? (Browser handles this).
+**"Delete Output File from Server Button"**? (Security issue, usually files are temp and auto-deleted).
+
+Let's do **"Download Action - Copy Link to Clipboard"**.
+After an audiobook is generated, you get a download button. I will add a "Copy Link" button next to it.
+But wait, if the download link is an object URL (`blob:http://...`), copying the link won't work in another tab or for another user.
+Let's check if the URL is a relative server URL or an object URL.
+Okay, the `downloadUrl` is an absolute path on the server: `/downloads/filename.m4b`.
+So yes, "Copy Download Link" is perfectly valid.
+BUT, "Copy Download Link" is a very small feature.
+
+What about **"Confirmation Modal on Stop Generation"**?
+If you are generating a 10-hour audiobook, you don't want to accidentally click "Stop Generation" and lose 9.5 hours of work!
+Currently, the stop button is:
+```tsx
+                <button
+                  onClick={() => {
+                    if (abortController) {
+                      abortController.abort();
+                      setAbortController(null);
+                      setLoading(false);
+                      setStatus('Generation stopped by user.');
+                    }
+                  }}
+                  className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" /> Stop Generation
+                </button>
+```
+
+If I change this to:
+```tsx
+onClick={() => {
+    if (window.confirm("Are you sure you want to stop generation? All progress will be lost.")) {
+      if (abortController) {
+         abortController.abort();
+         setAbortController(null);
+         setLoading(false);
+         setStatus('Generation stopped by user.');
+      }
+    }
+}}
+```
+This is literally a 3-line change. Very minimal, highly valuable, solves a real problem.
+But wait, `window.confirm` is blocking and sometimes frowned upon in modern React apps. A small inline confirmation state would be better.
+Click "Stop Generation" -> It changes to "Are you sure? Click to confirm" with a timeout to reset.
+
+Wait, looking at the instructions: "You are an expert product engineer and systems architect focused on designing and implementing meaningful, net-new functionality. Your mission is to take a conceptual feature, break it down into verifiable goals, and iteratively build it into a production-ready state."
+
+A tiny button change feels *too* small.
+What is a **substantial** net-new feature that isn't on the list?
+
+Idea A: **"Voice Pitch / Tone Control Slider"** (Does Kokoro support pitch?)
+Kokoro API only takes `speed`, not `pitch` (AFAIK).
+
+Idea B: **"Split output into multiple files (e.g., Chapter by Chapter)"**
+Right now, it merges all chapters into a single M4B or MP3.
+What if the user wants `Chapter_1.mp3`, `Chapter_2.mp3` in a `.zip`?
+This requires modifying the backend significantly.
+
+Idea C: **"Text Input Chunking UI"**
+Right now, the text is sent as one giant string and the backend chunks it.
+What if we show the user a "Split by Chapters" or "Split by Paragraphs" option for large text inputs?
+
+Idea D: **"Progress Notification Sound"**
+We already have browser notifications (`browser-notifications-on-completion` probably added sound or maybe just the desktop notification). In `main`, it does: `new Notification('Audiobook Generation Complete' ...)`. What if we add a pleasant 'ding' sound when it finishes?
+I can just do `new Audio('/success.mp3').play()` but I'd need an audio file.
+
+Idea E: **"Dark Mode Toggle"**
+This is a standard, medium-sized feature.
+It requires updating `web-ui/tailwind.config.ts` to `darkMode: 'class'`, adding a toggle button in the header, and updating the colors in `page.tsx` (`dark:bg-gray-900`, `dark:text-white`, `dark:border-gray-700`, etc).
+This is a robust, highly visible feature that touches UI significantly without messing with the fragile backend audio merge process.
+Wait, let's look at `page.tsx`. There are hardcoded `bg-white`, `bg-gray-50`, `bg-gray-100`, `text-gray-900` all over.
+Implementing dark mode purely by adding a switch and classes might be exactly what's needed.
+
+Is there an easier "substantial" feature?
+Idea F: **"Clear Output / Reset Generation Button"**
+After a generation finishes, the screen shows the success state and download button. If you want to do another, you have to click "Generate" again. But what if you want to clear the screen back to its initial state?
+Wait, `global-app-reset-button` exists.
+
+Idea G: **"Text Case Converter"**
+A toolbar above the text area with "UPPERCASE", "lowercase", "Title Case" buttons.
+
+Idea H: **"Toggle Sidebar for Advanced Settings"**
+Instead of showing Voice, Speed, Format below the input, have a collapsible "Advanced Options" accordion.
+This is a good UI improvement. Let's look at `page.tsx`.
+Currently, under the textarea/dropzone, there is:
+```tsx
+              {/* Options Grid */}
+              <div className="grid grid-cols-2 gap-4">
+```
+I can wrap this in a details/summary or a state-driven `<button>` that toggles visibility.
+But again, the UI is already very clean. It doesn't need to be hidden.
+
+Idea I: **"Multiple File Upload (Merge multiple EPUBs/TXTs into one audiobook)"**
+Currently `react-dropzone` has `maxFiles: 1`.
+If I allow multiple files, they could be concatenated on the backend before generation.
+This is complex.
+
+Let's do **"Confirmation before Stop"** but make it an inline React state!
+When you click "Stop Generation", the button turns red and says "Click again to confirm stop" for 3 seconds.
+This is a great, robust UI feature.
+"Two-step Confirmation for Stopping Generation".
+
+Or what about **"Read Aloud Preview (Test Voice on First Sentence)"**?
+Currently, if you select a voice and click "Play", it plays a hardcoded sample from `/api/sample?voice=af_heart`.
+If the user wants to hear how Kokoro pronounces *their* specific text with the selected speed, they can't unless they generate the whole thing.
+Feature: **"Preview First Sentence"**
+Add a "Preview Voice" button next to "Start Generation".
+When clicked, it sends only the first sentence of the `textInput` (or extracts the first sentence of the `.txt`/`.epub`) to the backend and plays it immediately.
+This is very complex for file uploads (parsing EPUB in frontend or backend just for a preview).
+
+Let's implement **"Two-step Confirmation for Stopping Generation"**.
+Currently:
+```tsx
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+```
+I will add:
+```tsx
+  const [stopConfirm, setStopConfirm] = useState(false);
+```
+
+When `loading` is true, the button is:
+```tsx
+                <button
+                  onClick={() => {
+                    if (!stopConfirm) {
+                      setStopConfirm(true);
+                      setTimeout(() => setStopConfirm(false), 3000);
+                      return;
+                    }
+                    if (abortController) {
+                      abortController.abort();
+                      setAbortController(null);
+                      setLoading(false);
+                      setStopConfirm(false);
+                      setStatus('Generation stopped by user.');
+                    }
+                  }}
+                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 ${stopConfirm ? 'bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" /> {stopConfirm ? 'Click again to confirm stop' : 'Stop Generation'}
+                </button>
+```
+Is this enough for a whole "Feature Architect" persona?
+"Write the absolute minimum code that solves the problem. Nothing speculative. No features beyond what was asked."
+Actually, wait, the user *didn't ask for a specific feature*. The prompt just says "Your mission is to take a conceptual feature...". I get to invent it!
+
+Let's invent a **"Copy Console Log to Clipboard"** feature, combined with the **"Two-Step Stop Confirmation"**. I can do both as a single "UX Improvements" PR, or just pick one.
+Actually, the prompt says: "take a conceptual feature, break it down... PR Title: feat: <Feature Name>".
+Let's choose one distinct feature: **"Two-Step Stop Generation Confirmation"**
+Name: **"Prevent Accidental Generation Cancellation"**
+
+Let's review the brainstorming approaches (Phase 2):
+1. **Standard**: Use `window.confirm("Are you sure?")`. Simple but blocks the main thread.
+2. **Minimalist (Chosen)**: Use an inline state toggle. The button changes text to "Click again to confirm" and resets after 3 seconds. It's perfectly integrated into the existing UI.
+3. **Lateral**: A slider you have to drag to stop (like "slide to power off"). Overkill.
+
+Let's do the Minimalist approach.
+
+Let's verify this is not duplicating.
+Remote branches:
+`prevent-accidental-navigation-10743347377615450568` -> This probably prevents browser back/refresh, not the Stop button.
+Let's check what it does if we pull it or read the git log. We can't pull it easily without checking out, but we don't need to.
+Let's do the Two-Step Stop Confirmation.
+
+Wait, is there an even better feature?
+"Copy to Clipboard" for the Output Console status log is really nice for bug reporting.
+Let's do **"Copy Error/Status Log to Clipboard"**.
+Actually, the status is just one line. It's not a log.
+```tsx
+<p className="text-blue-300 typing-effect">{status}</p>
+```
+So copying it is just copying one sentence. Not very useful.
+
+What if we add a **"Volume Slider for Voice Samples"**?
+Right now, `VoicePicker` plays samples at 100% volume.
+```tsx
+const audio = new Audio(`/api/sample?voice=${voiceId}`);
+```
+If you're wearing headphones, 100% might be too loud.
+Adding a global volume slider for the VoicePicker could be cool, but maybe too much UI clutter.
+
+Let's do **"Download Action - Copy Link to Clipboard"**.
+After an audiobook is generated, you get a download button.
+```tsx
+<a href={downloadUrl} download className="...">Download</a>
+```
+I'll add a `button` next to it:
+```tsx
+<button onClick={() => navigator.clipboard.writeText(window.location.origin + downloadUrl)} ...>Copy Link</button>
+```
+Wait, the `downloadUrl` is relative (`/downloads/file.m4b`). So `window.location.origin + downloadUrl` works.
+
+Let's consider **"Two-Step Stop Generation Confirmation"**. It's a solid, verifiable UX feature.
+
+PR Title: `feat: Two-Step Stop Generation Confirmation`
+Problem Solved: Users could accidentally click the prominent "Stop Generation" button, instantly cancelling a long-running audiobook generation with no way to resume. This feature requires a secondary confirmation click to ensure intent.
+
+Let's formulate the plan for this.
+
+Steps:
+1. Edit `web-ui/src/app/page.tsx`.
+2. Add a `stopConfirm` boolean state.
+3. Update the "Stop Generation" button `onClick` handler:
+   - If `!stopConfirm`, set it to true, start a 3-second timeout to reset it.
+   - If `stopConfirm`, execute the actual abort logic and reset the state.
+4. Update the button styling and text based on `stopConfirm` state.
+5. Create a verification script (Playwright) to click Start, click Stop, verify it asks for confirmation, wait 3 seconds, verify it resets, then click Stop twice quickly to verify it actually stops.
+6. Commit and submit.
+
+Let's quickly verify how the button looks right now.
+```tsx
+                <button
+                  onClick={() => {
+                    if (abortController) {
+                      abortController.abort();
+                      setAbortController(null);
+                      setLoading(false);
+                      setStatus('Generation stopped by user.');
+                    }
+                  }}
+                  className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" /> Stop Generation
+                </button>
+```
+I will change it to:
+```tsx
+  const [stopConfirm, setStopConfirm] = useState(false);
+
+  // ... inside component ...
+
+                <button
+                  onClick={() => {
+                    if (!stopConfirm) {
+                      setStopConfirm(true);
+                      setTimeout(() => {
+                        setStopConfirm(false);
+                      }, 3000);
+                      return;
+                    }
+                    if (abortController) {
+                      abortController.abort();
+                      setAbortController(null);
+                      setLoading(false);
+                      setStopConfirm(false);
+                      setStatus('Generation stopped by user.');
+                    }
+                  }}
+                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 ${stopConfirm ? 'bg-red-700 ring-4 ring-red-300' : 'bg-red-500 hover:bg-red-600'}`}
+                >
+                  {stopConfirm ? (
+                    <>Click again to confirm stop</>
+                  ) : (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Stop Generation</>
+                  )}
+                </button>
+```
+
+Wait, `react-hooks/exhaustive-deps` might complain if I use `setTimeout` without a ref, but it's fine since `setStopConfirm` is a stable setter from `useState`.
+
+Let's check if there's any other "Stop" logic. No, it's just this one button.
+
+Wait! What if we add a **"Pause/Resume"** feature instead of just Stop?
+The Kokoro API in `api/generate/route.ts` runs a `for...of` loop over chunks.
+It checks `signal.aborted` to throw an error.
+Implementing Pause would require passing a `paused` state to the backend, or the backend holding the loop while `paused` is true. But HTTP SSE requests don't have bidirectional communication to send a "pause" command! You'd have to cancel the request and restart from the last chunk. That's way too complex.
+So Two-Step Stop is the best.
+
+Is there any other file I need to modify? No.
+Will this pass the "Surgical Changes" rule? Yes.
+Will this pass the "Simplicity First" rule? Yes.
+
+Let me draft the PR Manifest conceptually.
+PR Title: feat: Two-Step Stop Generation Confirmation
+The Problem Solved: Prevents accidental cancellation of long-running generations by requiring a secondary confirmation click within 3 seconds.
+Visuals: (Screenshots of the normal stop button, and the confirmed state).
+Implementation Journey:
+- Added `stopConfirm` state to Home component.
+- Modified Stop button onClick to intercept the first click and set a 3s timeout.
+- Updated UI to clearly reflect the confirmation state.
+Tradeoffs & Assumptions:
+- Standard: `window.confirm`. Rejected because it blocks the UI thread and feels outdated.
+- Lateral: A "Hold to Stop" button. Rejected because holding on mobile/web can trigger text selection or context menus.
+- Minimalist (Chosen): Inline state toggle. Fits perfectly into the existing flow.
+
+This is perfect! I will formulate the plan and call `request_plan_review`.

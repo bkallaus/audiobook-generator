@@ -15,6 +15,7 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [stopConfirm, setStopConfirm] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -349,16 +350,28 @@ export default function Home() {
               ) : (
                 <button
                   onClick={() => {
+                    if (!stopConfirm) {
+                      setStopConfirm(true);
+                      setTimeout(() => setStopConfirm(false), 3000);
+                      return;
+                    }
                     if (abortController) {
                       abortController.abort();
                       setAbortController(null);
                       setLoading(false);
+                      setStopConfirm(false);
                       setStatus('Generation stopped by user.');
                     }
                   }}
-                  className="w-full py-4 rounded-xl font-bold text-white bg-red-500 hover:bg-red-600 shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5"
+                  className={`w-full py-4 rounded-xl font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 ${
+                    stopConfirm ? 'bg-red-700 ring-4 ring-red-300' : 'bg-red-500 hover:bg-red-600'
+                  }`}
                 >
-                  <Loader2 className="w-5 h-5 animate-spin" /> Stop Generation
+                  {stopConfirm ? (
+                    <span>Click again to confirm stop</span>
+                  ) : (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Stop Generation</>
+                  )}
                 </button>
               )}
             </div>
