@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -54,6 +55,34 @@ export default function Home() {
     },
     maxFiles: 1
   });
+
+  const handleDeleteFile = async () => {
+    if (!downloadUrl) return;
+
+    const confirm = window.confirm("Are you sure you want to delete this file from the server?");
+    if (!confirm) return;
+
+    try {
+      setIsDeleting(true);
+      const res = await fetch('/api/file', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileUrl: downloadUrl })
+      });
+
+      if (res.ok) {
+        setDownloadUrl(null);
+        setStatus('File deleted from server.');
+      } else {
+        const errorData = await res.json();
+        setError(errorData.error || 'Failed to delete file.');
+      }
+    } catch (e: any) {
+      setError(e.message || 'Failed to delete file.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (inputMode === 'file' && !file) return;
@@ -433,13 +462,25 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <a
-                      href={downloadUrl}
-                      download
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                    >
-                      Download
-                    </a>
+                    <div className="flex gap-2">
+                      <a
+                        href={downloadUrl}
+                        download
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center justify-center min-w-[120px]"
+                      >
+                        Download
+                      </a>
+                      <button
+                        onClick={handleDeleteFile}
+                        disabled={isDeleting}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2 justify-center
+                          ${isDeleting ? 'bg-red-100 text-red-400 cursor-not-allowed' : 'bg-red-50 hover:bg-red-100 text-red-600'}
+                        `}
+                      >
+                        {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        <span className="hidden sm:inline">Delete</span>
+                      </button>
+                    </div>
                   </div>
 
                   <audio controls src={downloadUrl} className="w-full mt-2" />
