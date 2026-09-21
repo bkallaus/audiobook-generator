@@ -1,30 +1,31 @@
-PR Title: feat: Voice Gender Filter
+PR Title: feat: Terminal-Style Status History Log
 
-The Problem Solved: Users had to scroll through the full list of voices to find a specific gender. This feature adds a simple, inline toggle to filter the voice list by 'All', 'Female', or 'Male', improving selection speed and usability.
+The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
 
 Visuals:
-![All Voices](/home/jules/verification/screenshots/voice_picker_all.png)
-![Female Voices](/home/jules/verification/screenshots/voice_picker_female.png)
-![Male Voices](/home/jules/verification/screenshots/voice_picker_male.png)
+- Success Log: `/home/jules/verification/screenshots/status_log.png`
+- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
 
 Implementation Journey:
-* Confirmed no duplication (checked existing branches).
-* Added `genderFilter` state to `VoicePicker`.
-* Applied filtering logic to the `VOICES` array before mapping.
-* Added a minimalist UI toggle using pill buttons above the voice list.
-* Verified functionality locally using a Playwright script.
+- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
+- Identified that `status` in `page.tsx` was just a string.
+- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
+- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
+- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
+- Cleaned up artifacts and verified tests locally.
 
 Tradeoffs & Assumptions:
-* Assumption: Users often have a preference for voice gender before selecting a specific model.
-* Standard Approach: A dropdown filter (Requires more clicks).
-* Minimalist Approach (Chosen): Inline pill buttons. Faster interaction, visible state, fits perfectly in the existing UI block.
-* Lateral Approach: Advanced search/filter modal (Overkill for a small list).
+- **Lateral Path Brainstorming:**
+  1. Standard: Add `statusLog` array, map last 5.
+  2. Minimalist: Concatenate raw text with `\n` to a string state.
+  3. Lateral: Hide logs in a `<details>` tag.
+- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
+- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
 
 Testing Instructions:
-1. Run `npm run dev` in the `web-ui` directory.
-2. Go to `http://localhost:3000`.
-3. In the "Voice Model" section, test clicking the "Female" and "Male" buttons.
-4. Verify the list updates immediately to show only the corresponding voices.
-5. Verify clicking "All" resets the list.
-
-Action Item: git push origin feature/voice-gender-filter && gh pr create -F pr_manifest.md
+1. Start the web UI (`npm run dev`).
+2. Navigate to `http://localhost:3000`.
+3. Input any text and click "Start Generation".
+4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
+5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
+Action Item: git push origin HEAD
