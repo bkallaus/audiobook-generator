@@ -1,31 +1,31 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Export Status Log to File
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Allows users to download the generation status history log directly to a `.txt` file via a download icon button in the Output Console. This is useful for saving debugging contexts or tracking the timeline of background generation processes.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- Status Log Download Icon: `/home/jules/verification/screenshots/status_log_with_download_button.png`
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Scanned git branches to verify the feature doesn't already exist.
+- Investigated `web-ui/src/app/page.tsx` for the "Status Log" section.
+- Added a `handleDownloadLog` handler that converts `statusLog` into a Blob-based text file and triggers a synthetic download.
+- Extracted a `Download` icon from `lucide-react` and placed it smoothly next to the "Status Log" header.
+- Wrote and executed a headless Python Playwright script to mock a fast generation API, trigger the download, and save visual proof via a screenshot.
+- Verified build and lint tests pass correctly.
+- Removed auto-generated scripts and local test files to adhere to surgical commit policies.
 
 Tradeoffs & Assumptions:
 - **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+  1. Standard: A small download icon button that converts the state array into a raw blob for downloading.
+  2. Minimalist: A "Copy" clipboard button.
+  3. Lateral: Automatically downloading upon completion or error.
+- **Decision:** Chose the standard Path 1 because explicit user control (via standard browser downloads) respects standard UX patterns better than polluting the clipboard or triggering unsolicited file downloads.
+- **Assumption:** Assumed it is acceptable to generate the plain-text timestamps locally at the time of download by mapping over the array.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
+1. Run `npm run dev` and navigate to `http://localhost:3000`.
+2. Provide input (e.g. text or file) and click `Start Generation`.
+3. Notice a `Download` icon appears in the Status Log header.
+4. Click the icon to immediately download `generation-log.txt`.
+5. Open the downloaded file to view the timestamped status history logs.
 Action Item: git push origin HEAD
