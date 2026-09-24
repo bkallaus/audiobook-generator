@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, RotateCcw, RotateCw } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -36,6 +36,13 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const skipAudio = (seconds: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime += seconds;
+    }
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -449,7 +456,23 @@ export default function Home() {
                     </a>
                   </div>
 
-                  <audio controls src={downloadUrl} className="w-full mt-2" />
+                  <audio ref={audioRef} controls src={downloadUrl} className="w-full mt-2" />
+                  <div className="flex gap-4 mt-2 justify-center">
+                    <button
+                      onClick={() => skipAudio(-15)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors shadow-sm"
+                      title="Skip backward 15 seconds"
+                    >
+                      <RotateCcw className="w-4 h-4" /> 15s
+                    </button>
+                    <button
+                      onClick={() => skipAudio(15)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:text-blue-600 transition-colors shadow-sm"
+                      title="Skip forward 15 seconds"
+                    >
+                      <RotateCw className="w-4 h-4" /> 15s
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
