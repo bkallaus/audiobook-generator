@@ -8,6 +8,8 @@ const ALLOWED_VOICES = [
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const voice = searchParams.get('voice');
+    const speedParam = searchParams.get('speed');
+    const speed = speedParam ? parseFloat(speedParam) : 1.0;
 
     if (!voice || !ALLOWED_VOICES.includes(voice)) {
         return NextResponse.json({ error: 'Invalid or missing voice parameter' }, { status: 400 });
@@ -17,7 +19,7 @@ export async function GET(req: NextRequest) {
         const kokoro = new KokoroClient();
         // Short sample text
         const text = "Hello, this is a sample of my voice.";
-        const audioBuffer = await kokoro.generateAudio(text, voice, 1.0);
+        const audioBuffer = await kokoro.generateAudio(text, voice, speed);
 
         return new NextResponse(new Blob([new Uint8Array(audioBuffer)]), {
             headers: {
@@ -25,8 +27,8 @@ export async function GET(req: NextRequest) {
                 'Content-Length': audioBuffer.length.toString(),
             },
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error generating sample:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ error: error instanceof Error ? error.message : 'Internal Server Error' }, { status: 500 });
     }
 }
