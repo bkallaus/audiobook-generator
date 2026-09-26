@@ -1,31 +1,28 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Text Input Font Size Controls
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Users pasting long text into the application for generation might struggle with readability; this feature provides inline "A-" and "A+" buttons to quickly scale the textarea font size up and down.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+* [UI Screenshot (Large Font)](/home/jules/verification/screenshots/verification_large.png)
+* [UI Screenshot (Small Font)](/home/jules/verification/screenshots/verification_small.png)
+* [UI Verification Video](/home/jules/verification/videos/87f4df6853e5dae7ac1321c856c16400.webm)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+* Explored codebase and verified no pre-existing duplication for this feature.
+* Decided on the "Minimalist" architectural approach (inline +/- buttons scaling inline style) to minimize UI clutter and abstract logic.
+* Added `fontSize` state to `web-ui/src/app/page.tsx` default to 14px.
+* Injected `A-` and `A+` buttons into the absolute positioned bottom right corner of the text input panel.
+* Bound buttons to scale the state between 10px and 24px, applying it to the textarea via inline style.
+* Executed Playwright UI automation script to capture screenshots/videos and verified functionality.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+* Assumption: Font size adjustment only matters for the text input box, not the global application UI.
+* Brainstormed paths: 1) Tailwind class toggling, 2) Minimalist inline styling (Chosen), 3) Global CSS variable slider.
+* Tradeoff: Chosen inline styling limits the design system consistency slightly but keeps the PR extremely simple, targeted, and localized exactly to the user's focus area without needing new context providers or complex CSS injection.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Run `npm run dev` in `web-ui`.
+2. Visit `http://localhost:3000`.
+3. Switch input mode to "Text Input".
+4. Type some text into the box.
+5. Click the "A+" and "A-" buttons in the bottom right corner of the textarea block to confirm the text scales appropriately without breaking layout.
