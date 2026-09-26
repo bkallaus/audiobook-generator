@@ -20,6 +20,7 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+  const [fontSize, setFontSize] = useState(14);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -253,9 +254,28 @@ export default function Home() {
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="Paste your text here..."
-                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none leading-relaxed"
+                    style={{ fontSize: `${fontSize}px` }}
                   />
                   <div className="absolute bottom-2 right-2 flex gap-2">
+                    <div className="flex gap-1 items-center bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm border border-gray-100">
+                      <button
+                        type="button"
+                        onClick={() => setFontSize(Math.max(10, fontSize - 2))}
+                        className="text-xs font-medium text-gray-500 hover:text-blue-500 transition-colors px-1"
+                        title="Decrease font size"
+                      >
+                        A-
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFontSize(Math.min(24, fontSize + 2))}
+                        className="text-xs font-medium text-gray-500 hover:text-blue-500 transition-colors px-1 border-l border-gray-200"
+                        title="Increase font size"
+                      >
+                        A+
+                      </button>
+                    </div>
                     {textInput.trim().length > 0 && (
                       <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur px-2 py-1 rounded">
                         ~{(() => {
