@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
@@ -36,6 +36,31 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+
+  const isInitialMount = useRef(true);
+
+  // Load text draft and input mode from localStorage on mount
+  useEffect(() => {
+    const savedTextInput = localStorage.getItem('draftTextInput');
+    const savedInputMode = localStorage.getItem('draftInputMode');
+
+    if (savedTextInput) {
+      setTextInput(savedTextInput);
+    }
+    if (savedInputMode === 'text' || savedInputMode === 'file') {
+      setInputMode(savedInputMode);
+    }
+  }, []);
+
+  // Save text draft and input mode to localStorage when they change, skipping the initial mount
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    localStorage.setItem('draftTextInput', textInput);
+    localStorage.setItem('draftInputMode', inputMode);
+  }, [textInput, inputMode]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {

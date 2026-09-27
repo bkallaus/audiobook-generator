@@ -1,31 +1,27 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Auto-Save Text Draft
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Users pasting long texts into the "Text Input" field would lose their entire draft if they accidentally refreshed the page, closed the tab, or the browser crashed. This feature seamlessly saves the drafted text and input mode in the background so it is restored automatically upon returning.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- [Screenshot: Restored Text Draft](file:///home/jules/verification/screenshots/draft_restored.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Verified no existing branch or PR duplicated this functionality using `git branch -a`.
+- Brainstormed approaches in internal logs and opted for a minimalist React `useEffect` + `localStorage` integration over an explicit "Save Draft" button or heavy `useLocalStorage` abstractions.
+- Added a `useRef` flag to safely track initial mount, bypassing the immediate overwrite of restored drafts.
+- Hooked up `localStorage.getItem` on mount, and `localStorage.setItem` for dependencies `textInput` and `inputMode`.
+- Verified UI functionality by writing and successfully running a Playwright script that validated text survival across page reloads.
+- Adjusted strict React linting rule violations seamlessly.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- Standard approach: Write a full wrapper hook `useLocalStorage` (Rejected: Unnecessarily abstracted for a single-use case).
+- Minimalist approach: Raw `localStorage` access wrapped tightly in `useEffect` (Chosen: Safe, robust, surgical).
+- Lateral approach: A manual "Save/Load Draft" button (Rejected: Worse UX compared to passive auto-save).
+- Assumption: Only client-side local storage is needed because no user auth accounts exist. Handled perfectly with `useEffect` to prevent hydration mismatches during Next.js SSR.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the dev server (`npm run dev`).
+2. Switch to the "Text Input" tab.
+3. Type any block of text.
+4. Refresh the page (F5 or browser reload).
+5. Verify the "Text Input" tab is automatically selected and your text is intact.
