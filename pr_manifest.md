@@ -1,31 +1,29 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Clear Status Log Button
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Users lacked a way to clear out previous status logs between generations, leading to a cluttered console if multiple audiobook generations were run in sequence.
 
-Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+Visuals: [Screenshot of the Clear Button](file:///home/jules/verification/screenshots/clear_status_log_button.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+* Checked out feature branch `feature/clear-status-log`.
+* Added `Trash2` icon to `lucide-react` import.
+* Added a clear button next to the "Status Log" title that resets the array when clicked (only visible when not actively loading).
+* Verified the layout and button presence locally via Playwright screenshot.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+* Assumption: The status log is just an ephemeral array stored in React state, not persistent storage.
+* Approaches Brainstormed:
+  1. Standard: Add button that clears state array.
+  2. Minimalist: Same, but icon-only to avoid visual clutter.
+  3. Lateral: Automatically clear log when a new generation begins.
+* Chosen Route: Minimalist/Standard hybrid. An icon-only button looks clean and gives the user explicit control over when to clear the history.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Run `cd web-ui && npm run dev`
+2. Open localhost:3000 in browser.
+3. Switch to Text Input, type some text.
+4. Click "Start Generation", then click "Stop Generation" to generate some log entries.
+5. Observe the Trash icon next to the "Status Log" header.
+6. Click it and ensure the logs disappear.
+
+Action Item: git push origin feature/clear-status-log
