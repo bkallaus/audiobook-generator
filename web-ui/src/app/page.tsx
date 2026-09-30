@@ -268,12 +268,19 @@ export default function Home() {
                         })()}
                       </span>
                     )}
-                    {textInput.length > 0 && (
+                    {textInput.length > 0 ? (
                       <button
                         onClick={() => setTextInput('')}
                         className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
                       >
                         Clear
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setTextInput("The universe is a pretty big place. If it's just us, seems like an awful waste of space.")}
+                        className="text-xs font-medium text-blue-500 hover:text-blue-600 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                      >
+                        Insert Sample
                       </button>
                     )}
                   </div>
