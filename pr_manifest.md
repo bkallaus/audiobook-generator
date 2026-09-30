@@ -1,31 +1,27 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Collapsible Configuration Panel
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: When generation starts, the UI can feel cramped, especially on smaller screens. This feature adds a collapsible configuration panel that automatically hides when generation begins to focus the UI on the status log and progress bar.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- [Expanded State](/home/jules/verification/screenshots/expanded-fixed.png)
+- [Collapsed State](/home/jules/verification/screenshots/collapsed-fixed.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Verified no existing branch implemented this specific feature.
+- Replaced the Configuration header with a clickable button incorporating `ChevronUp` and `ChevronDown` from `lucide-react`.
+- Added state `isConfigExpanded` to manage visibility.
+- Auto-collapse the panel upon starting generation.
+- Ensured container does not stretch artificially within the CSS grid by adding `h-fit` to the container class list.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- **Assumed** that users would want the config to collapse automatically when clicking generate to shift focus downward to progress.
+- **Paths brainstormed:** 1) Wrapper state + toggle button (Chosen for best UX), 2) Just auto-hide (Too aggressive, user can't re-check settings), 3) Tabbed interface (Breaks desktop view).
+- **Chosen path:** Conditional rendering wrapper linked to `isConfigExpanded`, as it balances user control (they can re-expand it manually) and smart defaults (auto-collapses on action).
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the next.js development server locally.
+2. Click the Configuration pane header; observe it collapses into just the header bar.
+3. Click it again to expand.
+4. Input text and click "Start Generation", verify that the config panel automatically collapses.
+
+Action Item: `git push origin feature/collapsible-config-panel-1790751162`
