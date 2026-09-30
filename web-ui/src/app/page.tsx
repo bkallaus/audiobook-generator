@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, ChevronUp, ChevronDown } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [isConfigExpanded, setIsConfigExpanded] = useState<boolean>(true);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -63,6 +64,7 @@ export default function Home() {
     }
 
     setLoading(true);
+    setIsConfigExpanded(false);
     setError(null);
     setDownloadUrl(null);
     setStatusLog([{time: new Date(), msg: 'Initializing generation...'}]);
@@ -194,14 +196,24 @@ export default function Home() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Input Section */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all hover:shadow-xl">
-            <div className="p-6 bg-gray-50 border-b border-gray-100">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all hover:shadow-xl flex flex-col h-fit">
+            <div
+              className="p-6 bg-gray-50 border-b border-gray-100 cursor-pointer flex justify-between items-center transition-colors hover:bg-gray-100"
+              onClick={() => setIsConfigExpanded(!isConfigExpanded)}
+            >
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-500" /> Configuration
               </h2>
+              <button
+                className="text-gray-500 hover:text-gray-800 focus:outline-none"
+                aria-label={isConfigExpanded ? "Collapse Configuration" : "Expand Configuration"}
+              >
+                {isConfigExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              </button>
             </div>
 
-            <div className="p-8 space-y-6">
+            {isConfigExpanded && (
+            <div className="p-8 space-y-6 flex-1 flex flex-col">
               {/* Input Mode Switch */}
               <div className="flex p-1 bg-gray-100 rounded-lg mb-6">
                 <button
@@ -361,6 +373,7 @@ export default function Home() {
                 </button>
               )}
             </div>
+            )}
           </div>
 
           {/* Output Section */}
