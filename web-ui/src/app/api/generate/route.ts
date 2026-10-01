@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
     const textInput = formData.get('text') as string | null;
     const voice = formData.get('voice') as string || 'af_heart';
     const speed = parseFloat(formData.get('speed') as string || '1.0');
-    const outputFormat = (formData.get('format') as 'm4b' | 'mp3') || 'm4b';
+    const outputFormat = (formData.get('format') as 'm4b' | 'mp3' | 'wav') || 'm4b';
 
     if (!file && !textInput) {
         return NextResponse.json({ error: 'No file or text provided' }, { status: 400 });

@@ -35,7 +35,7 @@ export default function Home() {
     };
   }, [loading]);
   const [textInput, setTextInput] = useState('');
-  const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [format, setFormat] = useState<'m4b' | 'mp3' | 'wav'>('m4b');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -306,14 +306,14 @@ export default function Home() {
               {/* Format Selection */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
                     <input
                       type="radio"
                       name="format"
                       value="m4b"
                       checked={format === 'm4b'}
-                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
+                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3' | 'wav')}
                       className="w-4 h-4 text-blue-600"
                     />
                     <span className="font-medium text-gray-700">M4B (Audiobook)</span>
@@ -324,10 +324,21 @@ export default function Home() {
                       name="format"
                       value="mp3"
                       checked={format === 'mp3'}
-                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3')}
+                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3' | 'wav')}
                       className="w-4 h-4 text-blue-600"
                     />
                     <span className="font-medium text-gray-700">MP3 (Flat)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="format"
+                      value="wav"
+                      checked={format === 'wav'}
+                      onChange={(e) => setFormat(e.target.value as 'm4b' | 'mp3' | 'wav')}
+                      className="w-4 h-4 text-blue-600"
+                    />
+                    <span className="font-medium text-gray-700">WAV (Lossless)</span>
                   </label>
                 </div>
               </div>

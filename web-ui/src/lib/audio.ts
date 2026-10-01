@@ -8,7 +8,7 @@ export class AudioProcessor {
         inputFiles: string[],
         outputDir: string,
         filename: string,
-        format: 'm4b' | 'mp3',
+        format: 'm4b' | 'mp3' | 'wav',
         metadata: { title?: string; author?: string }
     ): Promise<string> {
         const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'audio-merge-'));
@@ -33,6 +33,9 @@ export class AudioProcessor {
                     .audioCodec('aac')
                     .audioBitrate('128k')
                     .outputOptions('-movflags', '+faststart');
+            } else if (format === 'wav') {
+                command = command
+                    .audioCodec('pcm_s16le');
             } else {
                 // MP3
                 // Since inputs are already MP3 (from Kokoro), we can copy the stream
