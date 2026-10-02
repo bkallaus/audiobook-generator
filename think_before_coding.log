@@ -1,0 +1,29 @@
+PR Title: feat: Output Audio Playback Rate Selector
+
+The Problem Solved: Users lacked a way to preview or listen to generated audiobooks at accelerated or reduced speeds directly within the application's output console before downloading them to other devices.
+
+Visuals: [Screenshot of the Playback Rate Selector](/home/jules/verification/screenshots/playback-speed.png)
+
+Implementation Journey:
+- Brainstormed features to avoid duplication with existing branches, settling on a playback rate UI for the `<audio>` tag.
+- Added a `playbackRate` state and UI control (1.0x, 1.25x, 1.5x, 2.0x buttons) to the Download Card in `web-ui/src/app/page.tsx`.
+- Refactored the `<audio>` element to use `onLoadedData` to robustly sync `playbackRate` to the browser's audio player internal state even across multiple generation cycles.
+- Wrote and ran a Playwright UI verification script to test rendering and interaction.
+- Checked for linting errors and executed a clean Next.js build.
+
+Tradeoffs & Assumptions:
+- Brainstormed Paths:
+  1. *Standard*: Web Share API for downloading. Discarded due to browser support limitations and memory concerns with large Blob URLs.
+  2. *Minimalist*: A "Loop Playback" toggle. Discarded as too trivial.
+  3. *Lateral*: Playback Rate Selector for the HTML5 audio element. Chosen because it provides immediate value to users testing their newly generated audio without leaving the web app.
+- Assuming the HTML5 `<audio>` component does not expose playback speed controls by default (varies heavily by browser), custom UI buttons offer a universal and unified cross-browser experience.
+
+Testing Instructions:
+1. Start the application locally using `npm run dev`.
+2. Generate an audiobook (using standard text input for quick generation).
+3. Once the output is ready, observe the new "Playback Speed" control next to the audio player.
+4. Click "1.5x".
+5. Play the audio and verify it plays faster than normal.
+6. Generate a second quick text file and verify the player remembers and applies the 1.5x playback speed when the new audio loads.
+
+Action Item: Used internal tool to submit code.

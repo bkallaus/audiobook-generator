@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
@@ -20,6 +20,14 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playbackRate, setPlaybackRate] = useState<number>(1.0);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackRate;
+    }
+  }, [playbackRate]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -449,7 +457,32 @@ export default function Home() {
                     </a>
                   </div>
 
-                  <audio controls src={downloadUrl} className="w-full mt-2" />
+                  <audio
+                    ref={audioRef}
+                    controls
+                    src={downloadUrl}
+                    className="w-full mt-2"
+                    onLoadedData={(e) => { e.currentTarget.playbackRate = playbackRate; }}
+                  />
+
+                  <div className="flex items-center justify-end gap-2 mt-2">
+                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Playback Speed:</span>
+                    <div className="flex gap-1 bg-white border border-green-200 rounded-lg p-1 shadow-sm">
+                      {[1.0, 1.25, 1.5, 2.0].map((rate) => (
+                        <button
+                          key={rate}
+                          onClick={() => setPlaybackRate(rate)}
+                          className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
+                            playbackRate === rate
+                              ? 'bg-green-600 text-white shadow-sm'
+                              : 'text-gray-600 hover:bg-green-50 hover:text-green-800'
+                          }`}
+                        >
+                          {rate}x
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
