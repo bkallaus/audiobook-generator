@@ -36,6 +36,7 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [author, setAuthor] = useState('');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -82,6 +83,9 @@ export default function Home() {
     formData.append('voice', voice);
     formData.append('speed', speed.toString());
     formData.append('format', format);
+    if (author.trim()) {
+      formData.append('author', author.trim());
+    }
 
     try {
       setStatusLog(prev => [...prev, { time: new Date(), msg: 'Uploading and processing...' }]);
@@ -301,6 +305,18 @@ export default function Home() {
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mt-3"
                   />
                 </div>
+              </div>
+
+              {/* Metadata */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Author (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Jane Doe"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400"
+                />
               </div>
 
               {/* Format Selection */}
