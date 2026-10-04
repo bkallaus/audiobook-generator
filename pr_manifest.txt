@@ -1,0 +1,24 @@
+PR Title: feat: Clear status log button
+
+The Problem Solved: Adds a dedicated "Clear" button next to the Status Log header in the Output Console, allowing users to explicitly reset the status history array without requiring a page refresh.
+
+Visuals: ![Clear Status Log Screenshot](/home/jules/verification/screenshots/verification2.png)
+
+Implementation Journey:
+- Brainstormed 3 approaches (Standard text button, icon button, double-click to clear) and opted for a minimalist text button to match existing UI patterns (like the "Clear text" button).
+- Implemented conditionally rendered `button` next to "Status Log" header in `web-ui/src/app/page.tsx` that calls `setStatusLog([])`.
+- Wrote and executed a Playwright testing script mocking the server event stream to visually verify the feature.
+- Discarded temporary testing and logging artifacts.
+
+Tradeoffs & Assumptions:
+- Standard approach chosen over 'icon only' to maximize clarity.
+- Placed within the 'Status Log' header instead of at the bottom of the log to prevent it from moving as the log grows or scrolls.
+
+Testing Instructions:
+1. Start the dev server (`npm run dev`)
+2. Select an input mode (Text or File) and start a generation to populate the status log.
+3. Observe the "Clear" button appears next to the "Status Log" text.
+4. Click the "Clear" button.
+5. Observe the status log is cleared.
+
+Action Item: git commit and push via submit tool.
