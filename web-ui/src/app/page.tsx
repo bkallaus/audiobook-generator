@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Maximize2, Minimize2 } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [isLogExpanded, setIsLogExpanded] = useState(false);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -376,7 +377,18 @@ export default function Home() {
               <div className="bg-gray-900 rounded-xl p-6 mb-6 shadow-inner flex-1 flex flex-col justify-between min-h-[300px]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-                    <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
+                      {statusLog.length > 0 && (
+                        <button
+                          onClick={() => setIsLogExpanded(!isLogExpanded)}
+                          className="text-gray-500 hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-800"
+                          title={isLogExpanded ? "Collapse Log" : "Expand Log"}
+                        >
+                          {isLogExpanded ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                        </button>
+                      )}
+                    </div>
                     <div className="flex gap-4">
                       {loading && (
                         <span className="text-blue-400 text-xs font-mono flex items-center gap-1">
@@ -391,10 +403,10 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="font-mono text-sm space-y-2 flex flex-col justify-end overflow-hidden min-h-[80px]">
+                  <div className={`font-mono text-sm space-y-2 flex flex-col min-h-[80px] ${isLogExpanded ? 'justify-start max-h-[300px] overflow-y-auto' : 'justify-end overflow-hidden'}`}>
                     {statusLog.length > 0 ? (
                       <>
-                        {statusLog.slice(-6).map((log, i, arr) => (
+                        {(isLogExpanded ? statusLog : statusLog.slice(-6)).map((log, i, arr) => (
                           <p key={i} className={i === arr.length - 1 && !error && loading ? 'text-blue-300 typing-effect' : 'text-gray-500'}>
                             <span className="text-gray-600 text-xs mr-2">[{log.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
                             {log.msg}

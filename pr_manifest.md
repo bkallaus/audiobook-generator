@@ -1,31 +1,33 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Expand and Collapse Status Log History
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Improves visibility into long-running tasks by allowing users to expand the Output Console's status log. This provides access to the full history of generation events rather than artificially limiting the view to the last 6 entries.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- Expanded Log: `/home/jules/verification/screenshots/expanded_log.png`
+- Video Demo: `/home/jules/verification/videos/ec61a44437e16435560609e4052091c2.webm`
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Verified that no existing branch duplicates this functionality.
+- Added `isLogExpanded` state to `page.tsx`.
+- Imported `Maximize2` and `Minimize2` icons from `lucide-react`.
+- Updated the "Status Log" header to include an icon button that toggles the expansion state.
+- Modified the rendering logic to show all elements when expanded, or slice to the last 6 when collapsed.
+- Adjusted container CSS (`overflow-y-auto`, `max-h-[300px]`, and `justify-start`) to enable scrolling and prevent negative-flex-space clipping when expanded.
 
 Tradeoffs & Assumptions:
 - **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+  1. Standard: Toggle state that expands the inline container, mapping all items and adding `overflow-y-auto`.
+  2. Minimalist: Hardcode the log to always show 20 items and make it scrollable permanently.
+  3. Lateral: Open a floating modal or separate page for the full log history.
+- **Decision:** I chose the Standard path. It preserves the clean, minimalist "terminal" look by default, but provides power users the ability to expand the view inline without jarring context switches.
+- **Assumption:** Assumed that rendering the full array inline is performant enough given that the typical generation process produces under 100 log events.
 
 Testing Instructions:
 1. Start the web UI (`npm run dev`).
 2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
+3. Switch to "Text Input", enter some text, and click "Start Generation".
+4. Once logs begin appearing, click the expand icon (Maximize2) next to the "Status Log" header.
+5. Verify that the container expands, becomes scrollable if logs exceed `max-h-[300px]`, and shows all previous entries.
+6. Click the collapse icon (Minimize2) to verify it shrinks back to the last 6 items.
+
 Action Item: git push origin HEAD
