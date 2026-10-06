@@ -1,31 +1,31 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Copy Status Logs to Clipboard
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Improves debugging and sharing capabilities by allowing users to easily copy their generation logs (including error states) to their clipboard with a single click, eliminating the need to select text manually or download a file.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- Copy Logs Feature: `/home/jules/verification/screenshots/copy_logs.png`
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Scanned repository and PR branches to ensure feature is completely net-new and doesn't duplicate existing work.
+- Brainstormed and implemented an elegant `Copy Logs` button in the Output Console header.
+- Handled the formatting of the status logs (appending timestamps) and correctly integrated the Clipboard API.
+- Replaced the standard `Copy` icon with a `Check` icon for 2 seconds after a successful copy to provide positive visual feedback.
+- Ensured it integrates properly with the pre-existing error states.
+- Cleaned up internal testing scripts.
 
 Tradeoffs & Assumptions:
 - **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+  1. Standard: Add a copy button in the header that invokes `navigator.clipboard.writeText`.
+  2. Minimalist: Make the log text container itself clickable to copy to clipboard.
+  3. Lateral: Add a floating action button on hover over the terminal window.
+- **Decision:** I chose the Standard path. A dedicated icon button in the header is a very common UI pattern for "code/terminal" blocks (similar to GitHub code blocks). It is discoverable and doesn't interfere with users who just want to manually select a portion of the text.
+- **Assumption:** Assuming the user wants to copy the entire raw string representation of the logs (including timestamps) rather than just the last 6 truncated logs visible in the terminal view. I mapped over the entire `statusLog` array to capture the complete history.
 
 Testing Instructions:
 1. Start the web UI (`npm run dev`).
 2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
+3. Enter text and click "Start Generation".
+4. When logs appear in the Output Console, look for the "Copy logs to clipboard" icon in the header.
+5. Click it, verify the checkmark appears briefly, and paste the clipboard contents somewhere to verify the full text log is captured.
+
 Action Item: git push origin HEAD

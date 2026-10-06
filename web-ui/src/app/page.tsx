@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Copy, Check } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -18,8 +18,18 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [isCopied, setIsCopied] = useState(false);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+
+  const handleCopyLogs = useCallback(() => {
+    const logText = statusLog.map(l => `[${l.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}] ${l.msg}`).join('\n');
+    const fullText = error ? `${logText}\nError: ${error}` : logText;
+    navigator.clipboard.writeText(fullText).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
+  }, [statusLog, error]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -376,7 +386,18 @@ export default function Home() {
               <div className="bg-gray-900 rounded-xl p-6 mb-6 shadow-inner flex-1 flex flex-col justify-between min-h-[300px]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-                    <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
+                    <span className="text-gray-400 text-xs font-mono uppercase flex items-center gap-2">
+                      Status Log
+                      {statusLog.length > 0 && (
+                        <button
+                          onClick={handleCopyLogs}
+                          className="p-1 hover:bg-gray-800 rounded transition-colors text-gray-500 hover:text-gray-300"
+                          title="Copy logs to clipboard"
+                        >
+                          {isCopied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      )}
+                    </span>
                     <div className="flex gap-4">
                       {loading && (
                         <span className="text-blue-400 text-xs font-mono flex items-center gap-1">
