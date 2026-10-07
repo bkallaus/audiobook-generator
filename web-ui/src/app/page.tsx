@@ -18,6 +18,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [completedSettings, setCompletedSettings] = useState<{voice: string, speed: number, format: string} | null>(null);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -69,9 +70,12 @@ export default function Home() {
     setProgress(0);
     setStartTime(Date.now());
     setEstimatedTimeRemaining(null);
+    setCompletedSettings(null);
 
     const controller = new AbortController();
     setAbortController(controller);
+
+    const currentSettings = { voice, speed, format };
 
     const formData = new FormData();
     if (inputMode === 'file' && file) {
@@ -134,6 +138,7 @@ export default function Home() {
             } else if (data.type === 'result') {
               if (data.success) {
                 setDownloadUrl(data.downloadUrl);
+                setCompletedSettings(currentSettings);
                 setStatusLog(prev => [...prev, { time: new Date(), msg: 'Generation complete!' }]);
                 setProgress(100);
                 if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
@@ -448,6 +453,20 @@ export default function Home() {
                       Download
                     </a>
                   </div>
+
+                  {completedSettings && (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-md font-medium border border-green-200 shadow-sm">
+                        🗣️ {completedSettings.voice}
+                      </span>
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-md font-medium border border-green-200 shadow-sm">
+                        ⏱️ {completedSettings.speed}x
+                      </span>
+                      <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-md font-medium border border-green-200 shadow-sm">
+                        📄 {completedSettings.format.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
 
                   <audio controls src={downloadUrl} className="w-full mt-2" />
                 </div>
