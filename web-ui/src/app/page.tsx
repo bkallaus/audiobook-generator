@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Maximize2, Minimize2 } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -20,6 +20,7 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+  const [isFullScreenText, setIsFullScreenText] = useState(false);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -248,16 +249,27 @@ export default function Home() {
                   </div>
                 </div>
               ) : (
-                <div className="relative">
+                <div className={isFullScreenText ? "fixed inset-0 z-50 bg-white/95 backdrop-blur-sm p-4 md:p-12 lg:p-24 flex flex-col animate-in fade-in zoom-in-95 duration-200" : "relative group"}>
+                  <button
+                    onClick={() => setIsFullScreenText(!isFullScreenText)}
+                    className={`absolute ${isFullScreenText ? 'top-4 right-4 md:top-12 md:right-12 lg:top-24 lg:right-24' : 'top-2 right-2 opacity-0 group-hover:opacity-100'} p-2 bg-white hover:bg-gray-100 rounded-lg text-gray-500 transition-all z-10 shadow-sm border border-gray-200`}
+                    title={isFullScreenText ? "Exit Focus Mode" : "Enter Focus Mode"}
+                  >
+                    {isFullScreenText ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                  </button>
                   <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="Paste your text here..."
-                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                    className={isFullScreenText
+                      ? "flex-1 w-full p-6 md:p-10 border-2 border-gray-300 rounded-2xl text-lg resize-none shadow-2xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all leading-relaxed bg-white"
+                      : "w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed pr-10"
+                    }
+                    autoFocus={isFullScreenText}
                   />
-                  <div className="absolute bottom-2 right-2 flex gap-2">
+                  <div className={`absolute ${isFullScreenText ? 'bottom-4 right-4 md:bottom-12 md:right-12 lg:bottom-24 lg:right-24 mr-6 mb-6' : 'bottom-2 right-2'} flex gap-2 pointer-events-none`}>
                     {textInput.trim().length > 0 && (
-                      <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur px-2 py-1 rounded">
+                      <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur px-2 py-1 rounded border border-gray-100 pointer-events-auto">
                         ~{(() => {
                           const words = textInput.trim().split(/\s+/).filter(w => w.length > 0).length;
                           const secs = (words / 150 * 60) / speed;
@@ -271,7 +283,7 @@ export default function Home() {
                     {textInput.length > 0 && (
                       <button
                         onClick={() => setTextInput('')}
-                        className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100 pointer-events-auto"
                       >
                         Clear
                       </button>
