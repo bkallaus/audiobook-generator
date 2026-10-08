@@ -1,31 +1,35 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Distraction-Free Focus Mode for Text Input
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Improves the UX of pasting and editing long chunks of text by allowing the user to maximize the text area into a full-screen, distraction-free overlay.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- Normal View Screenshot: `/home/jules/verification/screenshots/verification.png`
+- Focus View Screenshot: `/home/jules/verification/screenshots/verification.png`
+- Focus View Video: `/home/jules/verification/videos/a1b4d361872be98f58f62204e2781efb.webm`
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Ran `git branch -a` to ensure the feature did not duplicate existing work.
+- Reviewed `page.tsx` and brainstormed several new UX features.
+- Selected "Focus Mode" and identified the simplest technical path: adding an `isFullScreenText` React state and modifying the text input's wrapper classes conditionally.
+- Imported `Maximize2` and `Minimize2` icons from `lucide-react`.
+- Implemented the overlay using Tailwind CSS (`fixed inset-0 z-50 bg-white/95 backdrop-blur-sm`).
+- Verified via a Python Playwright script locally, capturing both video and image evidence of the transition.
+- Cleaned up development artifacts to ensure a pristine PR.
 
 Tradeoffs & Assumptions:
 - **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+  1. Standard: Add `isFullScreenText` state and use conditional classes (`fixed inset-0`).
+  2. Minimalist: Just expand the textarea height to `h-screen` inline (rejected as it breaks grid layout).
+  3. Lateral: Render a separate `<dialog>` modal component that syncs text state with the main textarea (rejected as overly complex).
+- **Decision:** Chose the Standard path because it is simple, surgical, and leverages Tailwind's utility classes beautifully for the overlay and positioning.
+- **Assumption:** Assumed that the text input mode is a primary use case for many users and that they need a way to focus purely on the text without UI clutter.
 
 Testing Instructions:
 1. Start the web UI (`npm run dev`).
 2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
+3. Click on the "Text Input" tab in the Configuration panel.
+4. Hover over the text area. You will see a Maximize icon appear in the top right.
+5. Click the Maximize icon to enter Distraction-Free Focus Mode. The textarea will span the entire window.
+6. Click the Minimize icon to exit.
+
 Action Item: git push origin HEAD
