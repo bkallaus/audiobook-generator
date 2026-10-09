@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Repeat } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -12,6 +12,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [loopAudio, setLoopAudio] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [statusLog, setStatusLog] = useState<{time: Date, msg: string}[]>([]);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -440,16 +441,30 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <a
-                      href={downloadUrl}
-                      download
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                    >
-                      Download
-                    </a>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setLoopAudio(!loopAudio)}
+                        className={`p-2 rounded-lg transition-colors border shadow-sm flex items-center justify-center
+                          ${loopAudio
+                            ? 'bg-blue-100 border-blue-300 text-blue-700'
+                            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                          }
+                        `}
+                        title={loopAudio ? "Disable Loop" : "Enable Loop"}
+                      >
+                        <Repeat className={`w-5 h-5 ${loopAudio ? 'text-blue-600' : ''}`} />
+                      </button>
+                      <a
+                        href={downloadUrl}
+                        download
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center"
+                      >
+                        Download
+                      </a>
+                    </div>
                   </div>
 
-                  <audio controls src={downloadUrl} className="w-full mt-2" />
+                  <audio controls loop={loopAudio} src={downloadUrl} className="w-full mt-2" />
                 </div>
               )}
             </div>
