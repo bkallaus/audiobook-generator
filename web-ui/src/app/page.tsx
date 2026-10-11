@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Volume2, VolumeX } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -18,8 +18,42 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const soundEnabledRef = React.useRef(soundEnabled);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+
+  const playChime = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    } catch (e) {
+      console.error('Failed to play chime', e);
+    }
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -136,6 +170,9 @@ export default function Home() {
                 setDownloadUrl(data.downloadUrl);
                 setStatusLog(prev => [...prev, { time: new Date(), msg: 'Generation complete!' }]);
                 setProgress(100);
+                if (soundEnabledRef.current) {
+                  playChime();
+                }
                 if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
                   new Notification('Audiobook Generation Complete', {
                     body: 'Your audiobook is ready for download.',
@@ -303,9 +340,20 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Format Selection */}
+              {/* Format Selection & Sound Options */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
+                  <button
+                    type="button"
+                    onClick={() => setSoundEnabled(!soundEnabled)}
+                    className="flex items-center gap-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors"
+                    title={soundEnabled ? "Mute completion sound" : "Enable completion sound"}
+                  >
+                    {soundEnabled ? <Volume2 className="w-4 h-4 text-blue-500" /> : <VolumeX className="w-4 h-4" />}
+                    {soundEnabled ? "Sound On" : "Muted"}
+                  </button>
+                </div>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
                     <input
