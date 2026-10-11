@@ -1,31 +1,33 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Audio Chime Alert on Completion
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved:
+Provides an audible completion notification for long-running audiobook generation tasks, allowing users to step away from their tab without missing when their file is ready.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+![Success screenshot](/home/jules/verification/screenshots/audio-chime-success.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Verified existing icons in `lucide-react`.
+- Added a simple, zero-asset Web Audio API oscillator (`playChime`) to generate a pleasing notification sound.
+- Added a `soundEnabled` state and a UI toggle button (Volume2 / VolumeX icons) next to the "Output Format" selection.
+- Handled React stale closure bugs by backing `soundEnabled` with a `useRef` for the async SSE handler.
+- Verified toggle functionality and API completion triggers using a headless Playwright script.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- **Assumption:** The user requested a "net-new feature". Since none was explicitly specified, I autonomously selected a feature that adds high value to long-running asynchronous tasks (an audio chime).
+- **Paths Brainstormed:**
+  1) Standard: Load a static `ding.mp3` file.
+  2) Minimalist: Base64 encode a small mp3 string.
+  3) Lateral: Use `window.AudioContext` to synthesize the sound.
+- **Decision:** Selected the Lateral approach. Synthesizing the sound with the Web Audio API requires zero external assets, avoids large base64 strings in the code, and keeps the component entirely self-contained.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
+1. Start the Next.js dev server (`npm run dev`).
 2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+3. Notice the "Sound On" toggle next to "Output Format".
+4. Run a generation (or mock a short text input generation).
+5. Wait for it to complete. An audible chime should play.
+6. Toggle the button to "Muted" and repeat. No chime should play.
+
+Action Item:
+Submitted via autonomous submit tool.
