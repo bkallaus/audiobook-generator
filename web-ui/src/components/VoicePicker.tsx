@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Square, Loader2, Check } from 'lucide-react';
+import { Play, Square, Loader2, Check, Volume2, VolumeX } from 'lucide-react';
 
 interface Voice {
   id: string;
@@ -27,7 +27,14 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
+  const [previewVolume, setPreviewVolume] = useState(1.0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = previewVolume;
+    }
+  }, [previewVolume]);
 
   useEffect(() => {
     // Cleanup audio when component unmounts
@@ -63,6 +70,7 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
 
     try {
       const audio = new Audio(`/api/sample?voice=${voiceId}`);
+      audio.volume = previewVolume;
       audioRef.current = audio;
 
       audio.onended = () => {
@@ -109,22 +117,44 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex bg-gray-100 p-1 rounded-lg">
-        {(['All', 'Female', 'Male'] as const).map((filter) => (
+      <div className="flex flex-col gap-2">
+        <div className="flex bg-gray-100 p-1 rounded-lg">
+          {(['All', 'Female', 'Male'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setGenderFilter(filter)}
+              className={`
+                flex-1 py-1.5 text-xs font-semibold rounded-md transition-all
+                ${genderFilter === filter
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                }
+              `}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 px-1">
           <button
-            key={filter}
-            onClick={() => setGenderFilter(filter)}
-            className={`
-              flex-1 py-1.5 text-xs font-semibold rounded-md transition-all
-              ${genderFilter === filter
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
-              }
-            `}
+            onClick={() => setPreviewVolume(previewVolume === 0 ? 1 : 0)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            title={previewVolume === 0 ? "Unmute" : "Mute"}
           >
-            {filter}
+            {previewVolume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
           </button>
-        ))}
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.05"
+            value={previewVolume}
+            onChange={(e) => setPreviewVolume(parseFloat(e.target.value))}
+            className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+            title="Preview Volume"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
