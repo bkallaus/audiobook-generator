@@ -1,0 +1,32 @@
+PR Title: feat: Download Generation Settings Metadata (JSON)
+
+The Problem Solved: Users had no way to capture and save the exact configuration (voice, speed, format) used for a generated audiobook. This feature provides a simple "Config JSON" download button alongside the audio download for easy reproducibility.
+
+Visuals:
+- Local UI Screenshot: [config_json_button.png](/home/jules/verification/screenshots/config_json_button.png)
+
+Implementation Journey:
+- Verified no existing branch implemented this functionality.
+- Added a `lastUsedConfig` React state variable in `page.tsx` to store the generation settings precisely at the moment of job submission.
+- Created a "Config JSON" anchor link in the download card using a `data:text/json` URI to instantly download the settings without backend changes.
+- Avoided `any` type by using `Record<string, unknown> | null` to comply with strict ESLint rules.
+- Wrote and executed a headless Playwright Python script to mock the backend SSE loop and visually verify the button renders cleanly.
+
+Tradeoffs & Assumptions:
+- **Assumption:** The settings at the *start* of the generation are the ones that matter (Kokoro backend locks these in).
+- **Brainstormed Paths:**
+  1. *Standard Path:* Store settings in a state var on submit and use a data URI in the UI (Chosen).
+  2. *Minimalist Path:* Inline the current component states directly into the data URI without a secondary state tracker (Rejected: risky if user tweaks UI while generating).
+  3. *Lateral Path:* Inject the JSON directly into the `.m4b` metadata tags via the backend (Rejected: harder to extract for regular users compared to a raw `.json` sidecar file).
+- **Tradeoff:** Using a `data:text/json` URI scales perfectly for small configurations (like ours) and prevents the need for adding local file management overhead to the Next.js API.
+
+Testing Instructions:
+1. Start the backend services (`docker-compose up -d kokoro-tts`) or mock the `/api/generate` route.
+2. Start the web-ui (`cd web-ui && npm run dev`).
+3. Open `http://localhost:3000`.
+4. Enter some text in "Text Input" mode and click "Start Generation".
+5. Wait for the generation to complete.
+6. Observe the new "Config JSON" button next to "Download".
+7. Click "Config JSON" and verify that a `.json` file downloads containing your exact selected voice, speed, format, and input type.
+
+Action Item: Used submit tool.

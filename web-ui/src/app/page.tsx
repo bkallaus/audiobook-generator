@@ -18,6 +18,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [lastUsedConfig, setLastUsedConfig] = useState<Record<string, unknown> | null>(null);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -61,6 +62,15 @@ export default function Home() {
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
+
+    setLastUsedConfig({
+      inputMode,
+      inputName: inputMode === 'file' ? file?.name : 'Text Input',
+      voice,
+      speed,
+      format,
+      timestamp: new Date().toISOString()
+    });
 
     setLoading(true);
     setError(null);
@@ -440,13 +450,25 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <a
-                      href={downloadUrl}
-                      download
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                    >
-                      Download
-                    </a>
+                    <div className="flex gap-2">
+                      {lastUsedConfig && (
+                        <a
+                          href={`data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(lastUsedConfig, null, 2))}`}
+                          download="audiobook_config.json"
+                          className="bg-white border border-green-200 hover:bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center justify-center text-sm"
+                          title="Download Generation Settings (JSON)"
+                        >
+                          <FileText className="w-4 h-4 mr-1" /> Config JSON
+                        </a>
+                      )}
+                      <a
+                        href={downloadUrl}
+                        download
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                      >
+                        Download
+                      </a>
+                    </div>
                   </div>
 
                   <audio controls src={downloadUrl} className="w-full mt-2" />
