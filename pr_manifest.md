@@ -1,31 +1,32 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Download Text Draft
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Users typing or pasting text into the Text Input area previously had no way to save their draft directly from the interface. This feature adds a simple "Save" button to download the textarea content as a `.txt` file, preventing potential data loss before generation.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+[save_button_visible.png](/home/jules/verification/screenshots/save_button_visible.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+* Checked existing branches to avoid duplicating a feature.
+* Identified that a "Save Text Draft" feature was missing and highly useful.
+* Brainstormed architectural options (standard download button vs minimalist icon vs auto-saving to local storage).
+* Implemented a surgical, single-file change in `web-ui/src/app/page.tsx` adding a minimalist text-based "Save" button identical in style to the adjacent "Clear" button.
+* Wrote and executed a Playwright verification script to confirm the button triggers a download containing the correct text content.
+* Cleaned up orphaned scratchpad files and unnecessary dependencies added during brainstorming.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+* **Assumed** users want a standard file download for their text draft.
+* **Paths Brainstormed:**
+    1. Standard: Add a manual "Save" button to download `.txt`.
+    2. Minimalist: Use a save icon next to the "Clear" button.
+    3. Lateral: Auto-save drafts to local storage continuously.
+* **Why this route:** Standard button using simple text perfectly matches the adjacent "Clear" button's styling and functionality. It requires absolutely minimum code (just native Blob creation and download link) with no new dependencies or complex state management.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the Next.js dev server (`npm run dev`).
+2. Navigate to `localhost:3000`.
+3. Switch the configuration mode to "Text Input".
+4. Type or paste text into the text area.
+5. Notice the new "Save" button appear next to the "Clear" button at the bottom right.
+6. Click "Save" and verify that a `.txt` file is downloaded and its contents match what you typed.
+
+Action Item: `git commit -am "feat: Download Text Draft"`

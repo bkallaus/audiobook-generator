@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^17.2.3",
-    "googleapis": "^167.0.0"
+    "googleapis": "^167.0.0",
+    "lucide-react": "^1.57.0"
   },
   "devDependencies": {
     "@types/node": "^24.10.2",

@@ -268,6 +268,23 @@ export default function Home() {
                         })()}
                       </span>
                     )}
+                    {textInput.trim().length > 0 && (
+                      <button
+                        onClick={() => {
+                          const blob = new Blob([textInput], { type: 'text/plain' });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = `draft-${Date.now()}.txt`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                        className="text-xs font-medium text-gray-500 hover:text-blue-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        title="Download text as .txt file"
+                      >
+                        Save
+                      </button>
+                    )}
                     {textInput.length > 0 && (
                       <button
                         onClick={() => setTextInput('')}
