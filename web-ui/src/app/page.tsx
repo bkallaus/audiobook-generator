@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Zap } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -20,6 +20,49 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          const wakeLock = await navigator.wakeLock.request('screen');
+          if (active) {
+            wakeLockRef.current = wakeLock;
+            wakeLock.addEventListener('release', () => {
+              console.log('Screen Wake Lock released');
+            });
+            console.log('Screen Wake Lock acquired');
+          } else {
+            wakeLock.release();
+          }
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(`Wake Lock error: ${err.name}, ${err.message}`);
+        }
+      }
+    };
+
+    if (loading) {
+      requestWakeLock();
+    } else {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      }
+    }
+
+    return () => {
+      active = false;
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      }
+    };
+  }, [loading]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -379,9 +422,14 @@ export default function Home() {
                     <span className="text-gray-400 text-xs font-mono uppercase">Status Log</span>
                     <div className="flex gap-4">
                       {loading && (
-                        <span className="text-blue-400 text-xs font-mono flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> Elapsed: {Math.floor(elapsedTime / 60)}:{(elapsedTime % 60).toString().padStart(2, '0')}
-                        </span>
+                        <>
+                          <span className="text-yellow-400 text-xs font-mono flex items-center gap-1" title="Screen Wake Lock Active">
+                            <Zap className="w-3 h-3 fill-yellow-400" /> Awake
+                          </span>
+                          <span className="text-blue-400 text-xs font-mono flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> Elapsed: {Math.floor(elapsedTime / 60)}:{(elapsedTime % 60).toString().padStart(2, '0')}
+                          </span>
+                        </>
                       )}
                       {estimatedTimeRemaining && (
                         <span className="text-green-400 text-xs font-mono flex items-center gap-1">

@@ -1,0 +1,4 @@
+The `npm run build` succeeds and the TS checks during build succeed (wait, Next.js build runs TS checks).
+The linting errors are in `route.ts`, `epub.ts`, `sample/route.ts` which I didn't touch.
+The instructions say: "When resolving ESLint errors (e.g., unexpected any usages), strictly fix only the errors introduced by your specific code changes. Do not fix pre-existing lint errors in the file or adjacent code to adhere strictly to the 'Surgical Changes' protocol."
+I didn't introduce any of these errors. My edits to `page.tsx` have 0 lint errors!

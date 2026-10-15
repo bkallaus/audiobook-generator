@@ -1,0 +1,34 @@
+No `AGENTS.md`. I have memories that guide me.
+Memory:
+"When creating an execution plan, the testing and verification stages (e.g., linting, building, UI testing) must be kept strictly separate from the 'Complete pre commit steps' step to avoid violating the Completeness and Pre-Commit rules."
+"The project lacks a configured test suite; specifically, `web-ui` does not have a `test` script defined in its `package.json`."
+"Frontend UI verification mandates writing a temporary Playwright script to record user journeys, explicitly saving screenshots to `/home/jules/verification/screenshots` and video recordings to `/home/jules/verification/videos`."
+"Execution plans involving background servers (e.g., Next.js dev server) must explicitly include initialization delays (e.g., `sleep 15`) and corresponding termination commands (e.g., `pkill -f next`) directly in the plan steps to comply with the Specificity Rule and prevent plan rejection."
+
+Alright, my plan:
+
+1. **Verify structure and tools**:
+   - Check `web-ui/src/app/page.tsx` for `import { ..., Zap } from 'lucide-react'` and `loading` state. (Already done basically, but I will write it as a check).
+   - *Wait, I have to propose the plan to review first.*
+
+Let's do the "Think Before Coding" protocol. I will write the plan.
+Wait, let's write `think_before_coding.log`.
+```text
+Assumptions:
+- The device screen going to sleep during long audiobook generations is a real user pain point.
+- The browser `navigator.wakeLock` API is supported in modern browsers and can be used here.
+- The UI should give a subtle hint that this feature is active.
+
+Multiple interpretations/Approaches:
+1. Standard: Request wake lock on component mount, release on unmount.
+   - Pro: Simple.
+   - Con: Keeps screen awake even when not generating, draining battery.
+2. Minimalist: Request wake lock only when `loading` is true, release when `loading` is false.
+   - Pro: Only active when needed.
+   - Con: Requires tracking `loading` state correctly.
+3. Lateral/Creative: Ask user permission before requesting wake lock using a UI toggle (e.g. "Keep screen on").
+   - Pro: Gives user control.
+   - Con: Adds unnecessary UI clutter for a feature that is generally expected during long processes.
+
+Chosen path: Minimalist approach (Approach 2). We will tie the wake lock directly to the `loading` state of the generation process and show a small "Awake" indicator in the status bar while active.
+```

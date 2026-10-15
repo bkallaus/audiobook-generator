@@ -1,31 +1,26 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Keep Screen Awake during Generation
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Prevents the device screen from going to sleep during long audiobook generations, ensuring the process isn't interrupted by system power-saving features.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- `awake_icon.png` (captured during Playwright verification)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Imported `Zap` icon and `useRef` hook.
+- Implemented `WakeLockSentinel` logic tied to the `loading` state using `useEffect`.
+- Request wake lock when `loading` is true; release it when false.
+- Added visual indicator (Awake text and Zap icon) in the status log header when active.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- Assumed `navigator.wakeLock` is available in modern browsers.
+- Explored 3 paths: (1) Request on mount (2) Request only while loading (3) Request via manual toggle. Chosen minimalist path 2: Request only while loading and show a subtle visual indicator.
+- Used `unknown` for catch blocks to adhere to ESLint `@typescript-eslint/no-explicit-any` rule.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the application locally with `npm run dev`.
+2. Open in a compatible browser (e.g. Chrome/Edge/Safari).
+3. Paste text and click "Start Generation".
+4. Ensure the "Awake" text and `Zap` icon appear in the status bar next to the elapsed time.
+5. Wait for the generation to finish or cancel it, and verify the "Awake" icon disappears, thereby releasing the lock.
+
+Action Item: `git push origin HEAD && gh pr create -F pr_manifest.md`
