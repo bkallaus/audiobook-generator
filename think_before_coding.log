@@ -1,0 +1,9 @@
+Phase 2: Think Before Coding (The Headless Protocol)
+Assumption: When users switch from 'File' to 'Text' input mode, they usually want to start typing or pasting text immediately. Requiring an extra click to focus the textarea is poor UX.
+
+Brainstorming 3 Approaches:
+1. Standard: Add a React `useRef` to the `<textarea>` and a `useEffect` that listens for `inputMode === 'text'` and calls `.focus()`.
+2. Minimalist: Use the `autoFocus` prop on the `<textarea>` element. Since the textarea is conditionally rendered (`inputMode === 'text'`), React will mount it fresh when the mode switches, and `autoFocus` should trigger automatically without needing a ref or effect.
+3. Lateral: Intercept the "Text Input" button click handler and append a tiny delay `setTimeout` to focus a specific DOM ID, avoiding React state refs altogether.
+
+Chosen Path: Minimalist. Using the standard `autoFocus` prop built into React/HTML is the absolute simplest way to achieve this. It requires adding exactly one word (`autoFocus`) to the textarea element, eliminating the need for `useRef`, `useEffect`, and any additional state management.

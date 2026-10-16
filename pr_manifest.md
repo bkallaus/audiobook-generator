@@ -1,31 +1,23 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Autofocus text area when switching to Text Input mode
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Improves user experience by automatically focusing the textarea when the user toggles from 'File Upload' to 'Text Input' mode, eliminating the need for an extra click before they can start typing or pasting.
 
-Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+Visuals: ![Screenshot](/home/jules/verification/verification.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Created feature branch `feature/autofocus-textarea-when-switching-modes`.
+- Added the `autoFocus` prop to the textarea component in `web-ui/src/app/page.tsx`.
+- Verified changes locally using Playwright to confirm the textarea receives focus immediately upon mode switch.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- Assumption: When switching to Text Input mode, the primary user intent is to input text immediately.
+- Brainstormed Paths: 1) Standard `useRef` + `useEffect`. 2) Minimalist `autoFocus` HTML attribute. 3) Lateral delayed programmatic click/focus.
+- Chosen Path: Minimalist. Using the standard `autoFocus` prop on a conditionally rendered React component is the simplest, most performant way to achieve the desired behavior without introducing unnecessary state or refs.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the Next.js development server.
+2. Open the application in a browser.
+3. Click the "Text Input" button to switch modes.
+4. Verify that the textarea is immediately focused (cursor blinking inside) and you can begin typing without clicking into it first.
+
+Action Item: `git push -u origin HEAD && gh pr create -F pr_manifest.md`

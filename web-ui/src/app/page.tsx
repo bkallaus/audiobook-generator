@@ -250,6 +250,7 @@ export default function Home() {
               ) : (
                 <div className="relative">
                   <textarea
+                    autoFocus
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="Paste your text here..."
