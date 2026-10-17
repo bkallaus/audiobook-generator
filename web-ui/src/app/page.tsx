@@ -47,6 +47,7 @@ export default function Home() {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    disabled: loading,
     accept: {
       'application/epub+zip': ['.epub'],
       'text/plain': ['.txt']
@@ -202,6 +203,7 @@ export default function Home() {
             </div>
 
             <div className="p-8 space-y-6">
+              <div className={`space-y-6 transition-opacity duration-200 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
               {/* Input Mode Switch */}
               <div className="flex p-1 bg-gray-100 rounded-lg mb-6">
                 <button
@@ -227,6 +229,7 @@ export default function Home() {
                   className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200
                     ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}
                     ${file ? 'bg-green-50 border-green-400' : ''}
+                    ${loading ? 'cursor-not-allowed' : ''}
                   `}
                 >
                   <input {...getInputProps()} />
@@ -252,8 +255,9 @@ export default function Home() {
                   <textarea
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
+                    disabled={loading}
                     placeholder="Paste your text here..."
-                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed disabled:bg-gray-50 disabled:text-gray-500"
                   />
                   <div className="absolute bottom-2 right-2 flex gap-2">
                     {textInput.trim().length > 0 && (
@@ -330,6 +334,7 @@ export default function Home() {
                     <span className="font-medium text-gray-700">MP3 (Flat)</span>
                   </label>
                 </div>
+              </div>
               </div>
 
               {/* Action Button */}
