@@ -1,31 +1,29 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Lock UI During Generation
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Prevents users from accidentally changing settings, uploading a new file, or typing in the text area while a generation process is actively running, thereby avoiding confusing UI states where changes might seem part of the current job.
 
 Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+- Local Playwright tests were run to generate screenshots of the locked and unlocked state. They were verified to work properly.
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Wrapped the configuration settings in a container div with Tailwind classes (`opacity-50 pointer-events-none`) toggled by the `loading` state.
+- Passed `disabled: loading` explicitly to the `useDropzone` configuration.
+- Passed `disabled={loading}` to the text area input for added tab-focus protection.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- **Assumption:** Disabling the dropzone completely and making the components un-clickable is better than letting users "queue" up next jobs while the current one is running (which wasn't supported anyway).
+- **Paths brainstormed:**
+  1. Add `disabled` prop to all individual components (requires editing `VoicePicker`).
+  2. Use a Tailwind overlay / pointer-events-none class on a container wrapper.
+  3. Hide the configuration completely and show a skeleton.
+- **Why Path 2 was chosen:** It provides visual feedback (faded out inputs) and effectively locks the components without requiring modifications to any internal child components like `VoicePicker`.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the Next.js development server locally.
+2. Visit `http://localhost:3000`.
+3. Drop an EPUB file or paste text, select your desired voice/speed/format.
+4. Click 'Start Generation'.
+5. Observe that the entire configuration panel fades slightly (`opacity-50`) and prevents you from making any changes to text, voice, speed, format, or uploading a new file until the generation completes or is stopped.
+6. Click 'Stop Generation' and observe the inputs unlock.
+
+Action Item: git push origin feature/lock-ui-during-generation-nova && gh pr create -F pr_manifest.md
