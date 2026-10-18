@@ -270,7 +270,12 @@ export default function Home() {
                     )}
                     {textInput.length > 0 && (
                       <button
-                        onClick={() => setTextInput('')}
+                        onClick={() => {
+                          if (textInput.trim().length > 50) {
+                            if (!window.confirm('Are you sure you want to clear your text? This cannot be undone.')) return;
+                          }
+                          setTextInput('');
+                        }}
                         className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
                       >
                         Clear
