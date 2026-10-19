@@ -9,7 +9,7 @@ export class AudioProcessor {
         outputDir: string,
         filename: string,
         format: 'm4b' | 'mp3',
-        metadata: { title?: string; author?: string }
+        metadata: { title?: string; author?: string; bitrate?: string }
     ): Promise<string> {
         const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'audio-merge-'));
         // inputFiles are now passed directly
@@ -31,7 +31,7 @@ export class AudioProcessor {
             if (format === 'm4b') {
                 command = command
                     .audioCodec('aac')
-                    .audioBitrate('128k')
+                    .audioBitrate(metadata.bitrate || '128k')
                     .outputOptions('-movflags', '+faststart');
             } else {
                 // MP3
