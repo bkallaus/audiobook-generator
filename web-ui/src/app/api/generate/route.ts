@@ -208,6 +208,7 @@ export async function POST(req: NextRequest) {
     const voice = formData.get('voice') as string || 'af_heart';
     const speed = parseFloat(formData.get('speed') as string || '1.0');
     const outputFormat = (formData.get('format') as 'm4b' | 'mp3') || 'm4b';
+    const bitrate = formData.get('bitrate') as string || '128k';
 
     if (!file && !textInput) {
         return NextResponse.json({ error: 'No file or text provided' }, { status: 400 });
@@ -249,7 +250,7 @@ export async function POST(req: NextRequest) {
                     outputDir,
                     filename,
                     outputFormat,
-                    { title: filename }
+                    { title: filename, bitrate }
                 );
 
                 // 5. Return Result
