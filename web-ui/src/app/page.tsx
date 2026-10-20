@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Ear } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -18,8 +18,35 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [isPlayingNativeTTS, setIsPlayingNativeTTS] = useState(false);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+
+  const handleNativeTTSPreview = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    if (isPlayingNativeTTS) {
+      window.speechSynthesis.cancel();
+      setIsPlayingNativeTTS(false);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(textInput);
+    utterance.rate = speed;
+    utterance.onend = () => setIsPlayingNativeTTS(false);
+    utterance.onerror = () => setIsPlayingNativeTTS(false);
+
+    window.speechSynthesis.speak(utterance);
+    setIsPlayingNativeTTS(true);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -269,12 +296,21 @@ export default function Home() {
                       </span>
                     )}
                     {textInput.length > 0 && (
-                      <button
-                        onClick={() => setTextInput('')}
-                        className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
-                      >
-                        Clear
-                      </button>
+                      <>
+                        <button
+                          onClick={handleNativeTTSPreview}
+                          className={`text-xs font-medium px-2 py-1 rounded transition-colors shadow-sm border flex items-center gap-1 ${isPlayingNativeTTS ? 'bg-blue-100 text-blue-700 border-blue-200' : 'text-gray-500 hover:text-blue-600 bg-white/80 backdrop-blur border-gray-100'}`}
+                        >
+                          <Ear className="w-3 h-3" />
+                          {isPlayingNativeTTS ? 'Stop Proofread' : 'Proofread (Browser TTS)'}
+                        </button>
+                        <button
+                          onClick={() => setTextInput('')}
+                          className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          Clear
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
