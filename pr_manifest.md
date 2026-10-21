@@ -1,31 +1,26 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Speed Reset Button
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Adds a convenient reset button next to the Speed control label that allows users to quickly revert the generation playback speed back to 1.0x with a single click.
 
-Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+Visuals: ![Verification Image](/home/jules/verification/verification.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+* Added a new `RotateCcw` icon import from `lucide-react` in `src/app/page.tsx`.
+* Replaced the standard Speed label with a flex container housing both the label and a conditional reset button.
+* Configured the button to only render when `speed !== 1.0`.
+* Configured the button's onClick event to `setSpeed(1.0)`.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+* Assumption: Users frequently experiment with speed but often want to quickly return to normal.
+* Tradeoff/Alternative 1 (Standard): Double-click slider to reset. This is less discoverable but cleaner UI.
+* Tradeoff/Alternative 2 (Minimalist): A simple icon button beside the label (Chosen). Most discoverable, uses minimal space, and follows existing design language.
+* Tradeoff/Alternative 3 (Lateral): A global "Reset Defaults" button. Too destructive when only speed adjustment was desired.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+1. Start the Next.js dev server with `npm run dev` in the `web-ui` directory.
+2. Open `http://localhost:3000` in your browser.
+3. Slide the Speed control away from 1.0x.
+4. Verify a reset icon button appears next to the "Speed" label.
+5. Click the reset button and verify the slider and value return to exactly 1.0x.
+
+Action Item: use the \`submit\` tool with the branch name \`feature/speed-reset-button\` to push the changes.
