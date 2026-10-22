@@ -269,12 +269,35 @@ export default function Home() {
                       </span>
                     )}
                     {textInput.length > 0 && (
-                      <button
-                        onClick={() => setTextInput('')}
-                        className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
-                      >
-                        Clear
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setTextInput(textInput.toLowerCase())}
+                          title="Convert to lowercase"
+                          className="text-xs font-medium text-gray-500 hover:text-blue-600 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          lowercase
+                        </button>
+                        <button
+                          onClick={() => setTextInput(textInput.toLowerCase().replace(/(^\s*\w|[.?!]\s*\w)/g, c => c.toUpperCase()))}
+                          title="Sentence case"
+                          className="text-xs font-medium text-gray-500 hover:text-blue-600 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          Sentence
+                        </button>
+                        <button
+                          onClick={() => setTextInput(textInput.replace(/\s+/g, ' ').replace(/\s+([.,!?])/g, '$1').trim())}
+                          title="Clean extra spaces"
+                          className="text-xs font-medium text-gray-500 hover:text-blue-600 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          Clean Spacing
+                        </button>
+                        <button
+                          onClick={() => setTextInput('')}
+                          className="text-xs font-medium text-gray-500 hover:text-red-500 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-gray-100"
+                        >
+                          Clear
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
