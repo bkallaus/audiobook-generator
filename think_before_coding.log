@@ -1,0 +1,35 @@
+Finished committing. Re-creating the log file so the final output contains the PR Manifest as instructed.
+PR Title: feat: Text Formatting Quick Tools
+
+The Problem Solved: Users pasting raw text (e.g., from PDFs) often encounter messy formatting, like excessive spaces, bad punctuation spacing, or ALL CAPS text that TTS engines mispronounce (by spelling it out). This provides an instant, inline set of tools to sanitize text directly inside the input area before generation.
+
+Visuals:
+- [Screenshot showing formatting buttons](/home/jules/verification/screenshots/text_format_tools_final.png)
+- [Video demonstrating formatting in action](/home/jules/verification/videos/3363b8a11751f281e4546f4960439ef2.webm)
+
+Implementation Journey:
+- Brainstormed and reviewed branch list to avoid duplication.
+- Designed a minimalist, surgical feature replacing only 30 lines in `web-ui/src/app/page.tsx` directly alongside existing state.
+- Added three utility buttons ("lowercase", "Sentence", "Clean Spacing") that perform regex replacements on the React state `textInput`.
+- Wrote Playwright verification scripts to simulate a user pasting dirty text and using the formatters successfully.
+- Unstaged and cleaned up dev logs and artifacts to maintain a perfect commit hygiene.
+
+Tradeoffs & Assumptions:
+- **Assumption:** The `textInput` state should update immediately without preserving history (undo buffer), trusting the browser's native Undo if needed.
+- **Paths brainstormed:**
+  1. Standard: Full text editor toolbar with Rich Text. (Rejected: overly complex, TTS only needs plain text).
+  2. Minimalist: Inline helper buttons. (Chosen).
+  3. Lateral: Pronunciation Alias Dictionary via regex maps. (Rejected: Requires more complex UI and local storage state).
+- **Rationale for chosen route:** The 3 buttons provide immense value for TTS workflows with zero backend changes or additional dependencies.
+
+Testing Instructions:
+1. Start the Next.js dev server.
+2. Select "Text Input" mode.
+3. Paste messy text (e.g., `HELLO WORLD.    BAD SPACING !`).
+4. Click "lowercase", "Sentence", and "Clean Spacing" buttons and observe the text sanitize correctly.
+
+Action Item:
+`git checkout -b feature/text-formatting-quick-tools`
+`git commit -m "feat: text formatting quick tools"`
+`git-push origin feature/text-formatting-quick-tools`
+`gh pr create --title "feat: Text Formatting Quick Tools" --body-file pr_manifest.md`
