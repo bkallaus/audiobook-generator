@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Square, Loader2, Check } from 'lucide-react';
+import { Play, Square, Loader2, Check, Star } from 'lucide-react';
 
 interface Voice {
   id: string;
@@ -27,9 +27,20 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
+  const [favorites, setFavorites] = useState<string[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    try {
+      const savedFavorites = localStorage.getItem('favoriteVoices');
+      if (savedFavorites) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setFavorites(JSON.parse(savedFavorites));
+      }
+    } catch (e) {
+      console.error('Failed to load favorites', e);
+    }
+
     // Cleanup audio when component unmounts
     return () => {
       if (audioRef.current) {
@@ -38,6 +49,22 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
       }
     };
   }, []);
+
+  const toggleFavorite = (e: React.MouseEvent, voiceId: string) => {
+    e.stopPropagation();
+    setFavorites(prev => {
+      const newFavorites = prev.includes(voiceId)
+        ? prev.filter(id => id !== voiceId)
+        : [...prev, voiceId];
+
+      try {
+        localStorage.setItem('favoriteVoices', JSON.stringify(newFavorites));
+      } catch (e) {
+        console.error('Failed to save favorites', e);
+      }
+      return newFavorites;
+    });
+  };
 
   const handlePlay = async (e: React.MouseEvent, voiceId: string) => {
     e.stopPropagation(); // Prevent selecting the voice when clicking play
@@ -105,7 +132,13 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
 
   const filteredVoices = VOICES.filter(voice =>
     genderFilter === 'All' || voice.gender === genderFilter
-  );
+  ).sort((a, b) => {
+    const aFav = favorites.includes(a.id);
+    const bFav = favorites.includes(b.id);
+    if (aFav && !bFav) return -1;
+    if (!aFav && bFav) return 1;
+    return 0;
+  });
 
   return (
     <div className="flex flex-col gap-3">
@@ -161,6 +194,16 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
             {selectedVoice === voice.id && (
               <Check className="w-5 h-5 text-blue-600 mr-2" />
             )}
+
+            <button
+              onClick={(e) => toggleFavorite(e, voice.id)}
+              className="p-2 rounded-full transition-all text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"
+              title={favorites.includes(voice.id) ? "Unfavorite" : "Favorite"}
+            >
+              <Star
+                className={`w-4 h-4 ${favorites.includes(voice.id) ? 'fill-current text-yellow-400' : ''}`}
+              />
+            </button>
 
             <button
               onClick={(e) => handlePlay(e, voice.id)}

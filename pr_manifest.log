@@ -1,0 +1,28 @@
+PR Title: feat: Voice Favorites (Pinning)
+
+The Problem Solved: Users lacked a way to save and quickly access their preferred voices from the extensive VoicePicker list. This feature allows pinning favorite voices to the top for immediate access across sessions.
+
+Visuals: [Screenshot showing the UI with the active Star icon and pinned voice](file:///home/jules/verification/screenshots/after_favoriting.png)
+
+Implementation Journey:
+- Verified no existing branch existed for this feature.
+- Documented brainstorms (Standard vs Minimalist vs Lateral) and chose the Standard approach (persisted localStorage with sorting).
+- Added state (`favorites`) and local storage hydration.
+- Updated `filteredVoices` logic to sort pinned voices to the top.
+- Integrated `Star` icon into the UI with active/inactive styling.
+- Captured visual proof using Playwright.
+- Passed all linter and build steps (surgically targeting only introduced errors).
+
+Tradeoffs & Assumptions:
+- Assumption: I assumed `localStorage` was the best place for this data since there is no user backend DB available.
+- Tradeoff: Standard Approach vs Minimalist Approach. I chose the standard approach of persisting the data because temporary session pinning offers less value to someone generating many audiobooks over time.
+- I assumed the `react-hooks/set-state-in-effect` rule should be bypassed via inline comment for the initial `localStorage` hydration to avoid SSR hydration mismatch bugs, which is standard Next.js practice.
+
+Testing Instructions:
+1. Run `npm run dev` in `web-ui`.
+2. Open `http://localhost:3000`.
+3. In the Configuration panel, click the Star icon next to any voice (e.g., "Sky").
+4. Verify the Star turns yellow and the voice jumps to the top of the list.
+5. Refresh the page to verify the preference is saved.
+
+Action Item: `git push -u origin feature/voice-favorites` and `gh pr create --title "feat: Voice Favorites (Pinning)" --body-file pr_manifest.log`
