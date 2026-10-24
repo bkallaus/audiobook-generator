@@ -276,6 +276,22 @@ export default function Home() {
                         Clear
                       </button>
                     )}
+                    <button
+                      onClick={async () => {
+                        try {
+                          const text = await navigator.clipboard.readText();
+                          if (text) {
+                            setTextInput(prev => prev + (prev && !prev.endsWith(' ') && !prev.endsWith('\n') ? '\n' : '') + text);
+                          }
+                        } catch (err) {
+                          console.error('Failed to read clipboard', err);
+                        }
+                      }}
+                      className="text-xs font-medium text-blue-600 hover:text-blue-700 bg-white/80 backdrop-blur px-2 py-1 rounded transition-colors shadow-sm border border-blue-100"
+                    >
+                      Paste
+                    </button>
+
                   </div>
                 </div>
               )}
