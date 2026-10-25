@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Share2 } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -13,6 +13,7 @@ export default function Home() {
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
   const [statusLog, setStatusLog] = useState<{time: Date, msg: string}[]>([]);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -53,6 +54,32 @@ export default function Home() {
     },
     maxFiles: 1
   });
+
+
+  const handleShare = async () => {
+    if (!downloadUrl) return;
+    const url = window.location.origin + downloadUrl;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Generated Audiobook',
+          url: url
+        });
+      } else {
+        throw new Error('Web Share API not supported');
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      } catch (clipErr) {
+        console.error('Failed to copy to clipboard', clipErr);
+      }
+    }
+  };
 
   const handleGenerate = async () => {
     if (inputMode === 'file' && !file) return;
@@ -440,13 +467,22 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <a
-                      href={downloadUrl}
-                      download
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                    >
-                      Download
-                    </a>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleShare}
+                        className="bg-white border border-green-300 text-green-700 hover:bg-green-50 px-4 py-2 rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2"
+                      >
+                        {shareCopied ? <CheckCircle className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                        {shareCopied ? 'Copied' : 'Share'}
+                      </button>
+                      <a
+                        href={downloadUrl}
+                        download
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                      >
+                        Download
+                      </a>
+                    </div>
                   </div>
 
                   <audio controls src={downloadUrl} className="w-full mt-2" />
