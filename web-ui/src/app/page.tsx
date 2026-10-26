@@ -237,7 +237,21 @@ export default function Home() {
                     {file ? (
                       <div>
                         <p className="font-semibold text-green-800">{file.name}</p>
-                        <p className="text-sm text-green-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        <p className="text-sm text-green-600 mb-3">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        {file.name.toLowerCase().endsWith('.txt') && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const text = await file.text();
+                              setTextInput(text);
+                              setInputMode('text');
+                              setFile(null);
+                            }}
+                            className="flex items-center gap-1 mx-auto px-3 py-1.5 text-sm font-medium bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors shadow-sm"
+                          >
+                            <FileText className="w-4 h-4" /> Edit Text
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div className="space-y-1">
