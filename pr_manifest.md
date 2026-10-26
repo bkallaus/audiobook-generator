@@ -1,31 +1,26 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Edit Uploaded Text File Before Generation
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Users often upload TXT files that have minor errors, preamble, or formatting issues. To fix them, they previously had to edit the file locally and re-upload. This feature adds an "Edit Text" button for .txt files that seamlessly extracts the content, places it into the Text Input tab, switches modes, and clears the file selection.
 
-Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+Visuals: ![Edit Text Button](edit_text_button.png)
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Modified the file upload dropzone UI in `web-ui/src/app/page.tsx`.
+- Added conditional rendering for an "Edit Text" button when the file ends in `.txt`.
+- Implemented `await file.text()` to read the content and populate the `textInput` state.
+- Switched `inputMode` to `text` and cleared the selected file to provide a seamless transition to the editor.
+- Wrote and executed a Playwright verification script to assert the button exists, clicking it populates the textarea, and the input mode switches correctly.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- I assumed that editing the text would clear the file selection rather than keeping both in sync, because the backend logic handles "File Mode" and "Text Mode" mutually exclusively.
+- Brainstormed options included: (A) standard button next to file details (chosen), (B) immediately switching modes upon dropping a TXT file (rejected as it might be jarring for users who just want to upload and generate), (C) opening an in-place modal editor (rejected as too complex for the surgical change protocol). I chose (A) for simplicity and user control.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
+1. Start the Next.js dev server with `npm run dev` in the `web-ui` directory.
 2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+3. Drop a `.txt` file into the upload zone.
+4. Verify the "Edit Text" button appears below the file details.
+5. Click the "Edit Text" button.
+6. Verify the UI switches to the "Text Input" tab and the textarea is populated with the contents of the `.txt` file.
+
+Action Item: Use git to commit the changes and then use the submission tool.
