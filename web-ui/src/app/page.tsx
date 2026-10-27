@@ -2,13 +2,14 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Eye, EyeOff } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [voice, setVoice] = useState('af_heart');
   const [speed, setSpeed] = useState(1.0);
+  const [isTextHidden, setIsTextHidden] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -253,9 +254,18 @@ export default function Home() {
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     placeholder="Paste your text here..."
-                    className="w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed"
+                    className={`w-full h-48 p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none text-sm leading-relaxed transition-all duration-300 ${isTextHidden ? 'blur-sm select-none opacity-50' : ''}`}
                   />
                   <div className="absolute bottom-2 right-2 flex gap-2">
+                    {(textInput.length > 0 || isTextHidden) && (
+                      <button
+                        onClick={() => setIsTextHidden(!isTextHidden)}
+                        className="text-xs font-medium text-gray-500 hover:text-blue-600 bg-white/80 backdrop-blur p-1.5 rounded transition-colors shadow-sm border border-gray-100 flex items-center justify-center"
+                        title={isTextHidden ? "Show text" : "Hide text"}
+                      >
+                        {isTextHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      </button>
+                    )}
                     {textInput.trim().length > 0 && (
                       <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur px-2 py-1 rounded">
                         ~{(() => {
