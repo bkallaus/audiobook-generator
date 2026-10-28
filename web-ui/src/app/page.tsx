@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock , TriangleAlert } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -298,8 +298,14 @@ export default function Home() {
                     step="0.1"
                     value={speed}
                     onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600 mt-3"
+                    className={`w-full h-2 rounded-lg appearance-none cursor-pointer mt-3 ${speed > 1.5 ? 'bg-orange-200 accent-orange-500' : 'bg-gray-200 accent-blue-600'}`}
                   />
+                  {speed > 1.5 && (
+                    <div className="flex items-center gap-2 mt-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
+                      <TriangleAlert className="w-4 h-4 text-orange-500" />
+                      <span className="text-xs text-orange-700 font-medium">Speeds above 1.5x may result in degraded audio quality.</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
