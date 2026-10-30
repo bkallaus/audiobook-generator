@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -290,7 +290,24 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Speed: {speed}x</label>
+                                    <div className="flex justify-between items-center">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Speed</label>
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-md p-0.5">
+                      <button
+                        onClick={() => setSpeed(s => Math.max(0.5, Number((s - 0.1).toFixed(1))))}
+                        className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded transition-all"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                      <span className="text-xs font-bold text-gray-700 w-8 text-center">{speed.toFixed(1)}x</span>
+                      <button
+                        onClick={() => setSpeed(s => Math.min(2.0, Number((s + 0.1).toFixed(1))))}
+                        className="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-white hover:shadow-sm rounded transition-all"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
                   <input
                     type="range"
                     min="0.5"
