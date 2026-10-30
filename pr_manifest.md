@@ -1,31 +1,27 @@
-PR Title: feat: Terminal-Style Status History Log
+PR Title: feat: Clear Status Log
 
-The Problem Solved: Improves the UX of the "Output Console" by retaining and displaying a history of generation events (e.g., from Initialization to Uploading to Chunk Processing) instead of blindly overwriting a single status string, giving users more transparency into the background processes.
+The Problem Solved: Adds a clear button to the Status Log section, allowing users to manually reset their status history without needing to start a new generation.
 
-Visuals:
-- Success Log: `/home/jules/verification/screenshots/status_log.png`
-- Error Log: `/home/jules/verification/screenshots/status_error_log.png`
+Visuals: Screen verification automated; UI now displays a trash can icon next to the Status Log label when logs are present.
 
 Implementation Journey:
-- Scanned repository to ensure feature is completely net-new and doesn't duplicate existing branches.
-- Identified that `status` in `page.tsx` was just a string.
-- Replaced the string rendering logic with an array `statusLog` mapped over in reverse with proper timestamps and dimming effects for older logs.
-- Added `setStatusLog` at all call-sites for `setStatus` in the `handleGenerate` flow (success, progress chunks, and error catch blocks).
-- Discovered through visual verification and code review that the UI was hiding the raw `error` string when logs were present; fixed the conditional logic to show the error string directly below the status log array.
-- Cleaned up artifacts and verified tests locally.
+- Created the feature branch `feature/clear-status-log`.
+- Updated `web-ui/src/app/page.tsx` to conditionally render a `<button>` with a `Trash2` icon from `lucide-react`.
+- Ensured the button only appears when `statusLog.length > 0` and the app is not actively `loading`.
+- Clicking the button sets `statusLog` to an empty array.
+- Tested UI with Playwright, verifying logs are populated on starting a generation and cleared successfully on clicking the trash icon.
 
 Tradeoffs & Assumptions:
-- **Lateral Path Brainstorming:**
-  1. Standard: Add `statusLog` array, map last 5.
-  2. Minimalist: Concatenate raw text with `\n` to a string state.
-  3. Lateral: Hide logs in a `<details>` tag.
-- **Decision:** I chose the Standard path (an array limited to the last 6 entries) because it allows for robust CSS styling (highlighting the newest message in bright blue typing effect while dimming older messages), creating a very polished "Terminal" aesthetic.
-- **Assumption:** Assumed that the most useful view is the last 6 messages rather than an infinitely scrolling container, which prevents the console from growing indefinitely and breaking layout constraints.
+- I assumed a visual icon (Trash2) was preferable to text like "Clear" for minimalism.
+- The button is disabled/hidden during active generation (`!loading`) to prevent user from accidentally losing active status updates.
 
 Testing Instructions:
-1. Start the web UI (`npm run dev`).
-2. Navigate to `http://localhost:3000`.
-3. Input any text and click "Start Generation".
-4. Observe the Output Console as it retains older events with timestamps (e.g. `[10:04 AM] Uploading and processing...`) instead of flashing only the newest status.
-5. If an error is thrown, verify that the red error text prints securely below the terminal logs.
-Action Item: git push origin HEAD
+- Start the application using `cd web-ui && npm run dev`.
+- Type some text into the Text Input area.
+- Click "Start Generation" to populate the status log.
+- (If it errors, that's fine, the log will populate with an error).
+- Observe the new trash icon button next to "Status Log".
+- Click it.
+- Verify the status log clears and displays "Waiting for job...".
+
+Action Item: git push origin feature/clear-status-log && gh pr create --title "feat: Clear Status Log" --body-file pr_manifest.md
