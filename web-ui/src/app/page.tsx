@@ -18,6 +18,7 @@ export default function Home() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [charStats, setCharStats] = useState<{processed: number, total: number, speed: number} | null>(null);
 
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
@@ -67,8 +68,10 @@ export default function Home() {
     setDownloadUrl(null);
     setStatusLog([{time: new Date(), msg: 'Initializing generation...'}]);
     setProgress(0);
-    setStartTime(Date.now());
+    const currentStartTime = Date.now();
+    setStartTime(currentStartTime);
     setEstimatedTimeRemaining(null);
+    setCharStats(null);
 
     const controller = new AbortController();
     setAbortController(controller);
@@ -115,8 +118,13 @@ export default function Home() {
               setStatusLog(prev => [...prev, { time: new Date(), msg: `Processing Chapter ${data.chapterIndex}/${data.totalChapters}: ${data.chapterTitle}` }]);
               setProgress(data.progress);
 
-              if (data.processedCharacters && data.totalCharacters && startTime) {
-                const elapsed = (Date.now() - startTime!) / 1000; // seconds
+              if (data.processedCharacters && data.totalCharacters && currentStartTime) {
+                const elapsed = (Date.now() - currentStartTime) / 1000; // seconds
+                let currentSpeed = 0;
+                if (elapsed > 5 && data.processedCharacters > 0) {
+                  currentSpeed = Math.round(data.processedCharacters / elapsed);
+                }
+                setCharStats({ processed: data.processedCharacters, total: data.totalCharacters, speed: currentSpeed });
                 if (elapsed > 5 && data.processedCharacters > 0) {
                   const charsPerSec = data.processedCharacters / elapsed;
                   const remainingChars = data.totalCharacters - data.processedCharacters;
@@ -431,7 +439,15 @@ export default function Home() {
                   <div className="mt-8 space-y-2">
                     <div className="flex justify-between text-xs text-gray-400">
                       <span>Progress</span>
-                      <span>{progress}%</span>
+                      <div className="flex gap-3 text-right">
+                        {charStats && (
+                          <span className="text-gray-500">
+                             {charStats.processed.toLocaleString()} / {charStats.total.toLocaleString()} chars
+                             {charStats.speed > 0 ? ` (${charStats.speed.toLocaleString()} chars/sec)` : ''}
+                          </span>
+                        )}
+                        <span className="font-bold text-blue-400">{progress}%</span>
+                      </div>
                     </div>
                     <div className="w-full bg-gray-800 rounded-full h-2">
                       <div

@@ -1,23 +1,25 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Real-Time Character Processing Stats and Processing Speed
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Previously, long audio generation tasks provided no visibility into the actual workload size or processing speed. This change adds real-time character processing statistics (e.g., "25,000 / 50,000 chars") and instantaneous processing speed (chars/sec) to the Progress Console, giving users precise insight into generation progress and performance. It also fixes a stale closure bug that broke ETA calculations.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals: [stats_screenshot.png]
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Added `charStats` state to the `Home` component to track `processed`, `total`, and `speed`.
+- Fixed a stale closure bug on `startTime` inside the `handleGenerate` async loop by capturing `currentStartTime`.
+- Calculated real-time characters per second using the elapsed time and `processedCharacters` event data.
+- Updated the Output Console's progress bar header to display the new statistics alongside the percentage.
+- Verified rendering with a mocked SSE Playwright test.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- *Assumption*: The server's `processedCharacters` stream is reliable and accurate.
+- *Standard vs Minimalist vs Creative*: I chose a *Creative* approach. While standard would just show "Chars Processed: X", calculating the actual speed (chars/sec) reusing the existing `elapsed` time provides significantly higher value with zero extra backend load.
+- *Tradeoff*: Kept the UI clean by only showing the stats while loading/generating. Once complete, the stats disappear to keep the terminal uncluttered.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Start the backend and frontend (`npm run dev`).
+2. Upload a large text file or paste significant text into the Text Input mode.
+3. Click "Start Generation".
+4. Observe the Output Console next to the Progress percentage; it should display the processed/total characters and the chars/sec speed dynamically.
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: `git push origin feature/realtime-processing-stats-nova && gh pr create --title "feat: Real-Time Character Processing Stats and Processing Speed" --body-file pr_manifest.md`
