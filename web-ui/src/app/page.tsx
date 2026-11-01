@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus, WifiOff } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -19,7 +19,28 @@ export default function Home() {
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
+
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
+  const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    // Check initial state
+    if (typeof navigator !== 'undefined') {
+      setIsOffline(!navigator.onLine);
+    }
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -181,8 +202,16 @@ export default function Home() {
   };
 
   return (
+
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
+      {isOffline && (
+        <div className="bg-red-500 text-white px-4 py-3 flex items-center justify-center gap-2 shadow-md animate-in slide-in-from-top-2 mb-4 rounded-xl">
+          <WifiOff className="w-5 h-5" />
+          <span className="font-medium text-sm">You are offline. Audiobook generation requires a network connection.</span>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto">
+
         <header className="mb-10 text-center">
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
             Kokoro Audiobook Generator
