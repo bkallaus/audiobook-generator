@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus , Terminal} from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -36,6 +36,34 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [copiedCurl, setCopiedCurl] = useState(false);
+
+
+
+  const handleCopyCurl = () => {
+    let curlCmd = `curl -X POST http://localhost:3000/api/generate \\
+`;
+
+    if (inputMode === 'text') {
+      const textParam = textInput.length > 50 ? 'YOUR_TEXT_HERE' : textInput.replace(/"/g, '\\"');
+      curlCmd += `  -F text="${textParam || 'YOUR_TEXT_HERE'}" \\
+`;
+    } else {
+      curlCmd += `  -F "file=@/path/to/your/${file ? file.name : 'file.txt'}" \\
+`;
+    }
+
+    curlCmd += `  -F "voice=${voice}" \\
+`;
+    curlCmd += `  -F "speed=${speed}" \\
+`;
+    curlCmd += `  -F "format=${format}"`;
+
+    navigator.clipboard.writeText(curlCmd).then(() => {
+      setCopiedCurl(true);
+      setTimeout(() => setCopiedCurl(false), 2000);
+    });
+  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -196,9 +224,19 @@ export default function Home() {
           {/* Input Section */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden transform transition-all hover:shadow-xl">
             <div className="p-6 bg-gray-50 border-b border-gray-100">
+              <div className="flex justify-between items-center w-full">
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                 <FileText className="w-5 h-5 text-blue-500" /> Configuration
               </h2>
+              <button
+                onClick={handleCopyCurl}
+                title="Copy API Command (cURL)"
+                className="text-gray-400 hover:text-blue-500 transition-colors flex items-center gap-1 text-xs font-mono bg-white px-3 py-1.5 rounded-md border border-gray-200 hover:border-blue-300 shadow-sm"
+              >
+                {copiedCurl ? <CheckCircle className="w-3.5 h-3.5 text-green-500" /> : <Terminal className="w-3.5 h-3.5" />}
+                {copiedCurl ? 'Copied!' : 'Copy cURL'}
+              </button>
+            </div>
             </div>
 
             <div className="p-8 space-y-6">

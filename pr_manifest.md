@@ -1,23 +1,25 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Copy API Request (cURL)
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Adds a small utility for developers integrating with the backend to easily generate and copy the underlying cURL command mirroring the current UI settings.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals: No screenshot attached, added a small Terminal icon button next to Configuration header.
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Updated `lucide-react` imports with the `Terminal` icon.
+- Created local state (`copiedCurl`) to provide feedback when the copy succeeds.
+- Wrote `handleCopyCurl` that reads `inputMode`, `textInput`, `file`, `voice`, `speed`, and `format` to construct the CLI command.
+- Integrated the new button smoothly into the Configuration panel header.
+- Fixed a minor string parsing issue during AST compilation.
+- Wrote a local Playwright script to test the interaction and verify accurate clipboard transfer.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- Evaluated multiple distinct ideas: "Voice Pitch Control", "Text to Speech presets", and "Copy API Request". Chose "Copy API Request" due to high value for developers without requiring sweeping/bloated backend modifications (violates Surgical Changes), effectively providing an "API snippet" feature.
+- Assumptions: The text length of the `multipart/form-data` `-F text="..."` should be limited if the user pastes very large text, replacing large inputs with `YOUR_TEXT_HERE`. Escaped small texts gracefully.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Open the UI locally (http://localhost:3000).
+2. Adjust your speed, format, voice, and input settings.
+3. Click "Copy cURL" in the Configuration header.
+4. Verify your clipboard now contains the correctly formatted multi-part curl request matching your local configuration.
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: Used the standard submission tool.
