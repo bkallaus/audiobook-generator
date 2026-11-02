@@ -1,23 +1,34 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Advanced Metadata Settings (Title/Author)
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Previously, generated M4B/MP3 audiobooks hardcoded the output title to the original filename and did not include author metadata, despite the backend explicitly supporting these properties. This change exposes an "Advanced Settings" configuration that allows users to seamlessly define custom Title and Author attributes prior to generation, ensuring accurate ID3 tags in the downloaded artifact.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals:
+- [Screenshot](/home/jules/verification/screenshots/verification.png)
+- [Video](/home/jules/verification/videos/verification.webm)
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Brainstormed and explored features (tested voice previews which were already implemented).
+- Evaluated `AudioProcessor.mergeAudio` to discover unexposed Title and Author metadata arguments.
+- Added `ChevronDown` and `ChevronUp` icons and standard React state in `web-ui/src/app/page.tsx`.
+- Appended `title` and `author` safely to FormData in `handleGenerate`.
+- Implemented a collapsible "Advanced Settings (Metadata)" UI section to retain interface simplicity while providing the new inputs.
+- Modified `web-ui/src/app/api/generate/route.ts` to extract `title`/`author` strings and funnel them into the `AudioProcessor.mergeAudio` method, defaulting to `filename` for title.
+- Confirmed UI logic correctly submits these properties via Playwright integration scripts.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- *Interpretation*: I assumed an explicit "Advanced Settings" section is better than always exposing these inputs, to keep the UI clean and minimalist (Tradeoff Bias: Caution and Simplicity).
+- *Paths Brainstormed*:
+  1. *Extract Text from EPUB for editing* (Rejected: High complexity, involves EPUB parsing library in-browser).
+  2. *Add clear buttons for inputs* (Rejected: Not meaningful or net-new enough).
+  3. *Expose Title/Author metadata configuration* (Chosen: Meaningful impact on output, leverages existing backend, straightforward frontend integration).
+- *Assumptions*: If `title` is empty, the backend defaults to the `filename` just like it previously did. If `author` is empty, no artist metadata is injected, which is safe.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Run `docker-compose up` or start backend + Next.js UI locally.
+2. Select a text input or upload a file.
+3. Click "Advanced Settings (Metadata)" below the Output Format options.
+4. Input a custom "Title" and "Author".
+5. Click "Start Generation".
+6. Download the generated m4b/mp3 and check its metadata (e.g. via VLC or file properties). It should reflect your inputs.
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: `git push origin feature/metadata-settings && gh pr create --title "feat: Advanced Metadata Settings (Title/Author)" --body "$(cat pr_manifest.md)"`

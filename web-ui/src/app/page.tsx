@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -36,6 +36,9 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -82,6 +85,8 @@ export default function Home() {
     formData.append('voice', voice);
     formData.append('speed', speed.toString());
     formData.append('format', format);
+    if (title.trim()) formData.append('title', title.trim());
+    if (author.trim()) formData.append('author', author.trim());
 
     try {
       setStatusLog(prev => [...prev, { time: new Date(), msg: 'Uploading and processing...' }]);
@@ -320,7 +325,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Format Selection */}
+                            {/* Format Selection */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
                 <div className="flex gap-4">
@@ -347,6 +352,42 @@ export default function Home() {
                     <span className="font-medium text-gray-700">MP3 (Flat)</span>
                   </label>
                 </div>
+              </div>
+
+              {/* Advanced Settings */}
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="flex items-center justify-between w-full p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Advanced Settings (Metadata)</span>
+                  {showAdvanced ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                </button>
+
+                {showAdvanced && (
+                  <div className="p-4 border border-gray-200 rounded-lg bg-white space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</label>
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Leave empty to use filename"
+                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Author</label>
+                      <input
+                        type="text"
+                        value={author}
+                        onChange={(e) => setAuthor(e.target.value)}
+                        placeholder="e.g. John Doe"
+                        className="w-full p-2 border border-gray-200 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Action Button */}
