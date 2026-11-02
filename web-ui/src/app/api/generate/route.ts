@@ -208,6 +208,8 @@ export async function POST(req: NextRequest) {
     const voice = formData.get('voice') as string || 'af_heart';
     const speed = parseFloat(formData.get('speed') as string || '1.0');
     const outputFormat = (formData.get('format') as 'm4b' | 'mp3') || 'm4b';
+    const title = formData.get('title') as string | null;
+    const author = formData.get('author') as string | null;
 
     if (!file && !textInput) {
         return NextResponse.json({ error: 'No file or text provided' }, { status: 400 });
@@ -244,12 +246,15 @@ export async function POST(req: NextRequest) {
 
                 // 4. Merge Audio Files
                 sendEvent({ type: 'status', message: 'Merging audio files...' });
+                const metadataTitle = title || filename;
+                const metadata = { title: metadataTitle, ...(author ? { author } : {}) };
+
                 const outputPath = await AudioProcessor.mergeAudio(
                     audioFilePaths,
                     outputDir,
                     filename,
                     outputFormat,
-                    { title: filename }
+                    metadata
                 );
 
                 // 5. Return Result
