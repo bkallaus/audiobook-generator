@@ -2,13 +2,46 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus, Link, Check } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [voice, setVoice] = useState('af_heart');
   const [speed, setSpeed] = useState(1.0);
+  const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+
+    const [copiedLink, setCopiedLink] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlVoice = params.get('voice');
+    const urlSpeed = params.get('speed');
+    const urlFormat = params.get('format');
+    if (urlVoice) setVoice(urlVoice);
+    if (urlSpeed) setSpeed(parseFloat(urlSpeed));
+    if (urlFormat === 'm4b' || urlFormat === 'mp3') setFormat(urlFormat as 'm4b' | 'mp3');
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.set('voice', voice);
+    params.set('speed', speed.toString());
+    params.set('format', format);
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.replaceState(null, '', newUrl);
+  }, [voice, speed, format]);
+
+  const handleShareConfig = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
@@ -35,7 +68,6 @@ export default function Home() {
     };
   }, [loading]);
   const [textInput, setTextInput] = useState('');
-  const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -280,7 +312,21 @@ export default function Home() {
                 </div>
               )}
 
+
+              {/* Settings Header */}
+              <div className="flex items-center justify-between border-t border-gray-100 pt-6 mt-2 mb-4">
+                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Settings</h3>
+                <button
+                  onClick={handleShareConfig}
+                  className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Link className="w-3.5 h-3.5" />}
+                  {copiedLink ? 'Copied Link!' : 'Share Config'}
+                </button>
+              </div>
+
               {/* Options Grid */}
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Voice Model</label>

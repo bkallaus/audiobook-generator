@@ -1,23 +1,25 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: URL State Syncing for Bookmarking & Sharing Configurations
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Allows users to bookmark or share their exact Voice, Speed, and Format configurations by syncing the UI state to URL parameters in real-time, complete with a convenient 'Share Config' copy button.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals: (No screenshots added natively, verified via Playwright headless)
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Refactored `page.tsx` to read `window.location.search` parameters on mount.
+- Added a `useEffect` hook to update the URL via `window.history.replaceState` whenever configuration options change.
+- Added a "Share Config" button next to the Options Grid to instantly copy the exact current configuration URL.
+- Added temporary "Copied Link!" visual feedback.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- **Assumption:** Browser clipboard APIs (`navigator.clipboard`) will be available. We added a try-catch for error boundaries.
+- **Tradeoff:** Instead of using Next.js `useRouter` and `useSearchParams` which require complex `<Suspense>` boundaries for static compilation, I chose the native `window.location.search` DOM approach for simplicity and zero impact on Next.js server/static rendering mechanics.
+- **Paths brainstormed:** 1. Next.js native hooks (heavy/complex), 2. Native DOM API (chosen), 3. JSON configuration import/export snippet (too complex for user).
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Start the application locally.
+2. Select a new Voice Model, adjust the Speed, or change Output Format.
+3. Observe the URL in your browser updating automatically without refreshing the page.
+4. Click "Share Config" to copy the URL.
+5. Open a new tab and paste the URL. The application should load your chosen configuration immediately.
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: git push origin feature/url-state-syncing-nova-8934521487 && gh pr create --title "feat: URL State Syncing for Bookmarking & Sharing Configurations" --body "$(cat pr_manifest.md)"
