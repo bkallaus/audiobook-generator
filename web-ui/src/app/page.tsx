@@ -37,6 +37,83 @@ export default function Home() {
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
 
+  // Dynamic Favicon Effect
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+
+    // Determine current state
+    if (!loading && !downloadUrl && !error) {
+      // Idle
+      link.href = "/favicon.ico";
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, 32, 32);
+
+    if (loading) {
+      // Background circle (gray)
+      ctx.beginPath();
+      ctx.arc(16, 16, 14, 0, 2 * Math.PI);
+      ctx.strokeStyle = "#E5E7EB"; // gray-200
+      ctx.lineWidth = 4;
+      ctx.stroke();
+
+      // Progress arc (blue)
+      if (progress > 0) {
+        ctx.beginPath();
+        const endAngle = (progress / 100) * 2 * Math.PI - (Math.PI / 2);
+        ctx.arc(16, 16, 14, -Math.PI / 2, endAngle);
+        ctx.strokeStyle = "#3B82F6"; // blue-500
+        ctx.lineWidth = 4;
+        ctx.stroke();
+      }
+    } else if (downloadUrl) {
+      // Success: Green circle
+      ctx.beginPath();
+      ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+      ctx.fillStyle = "#22C55E"; // green-500
+      ctx.fill();
+      // White checkmark
+      ctx.beginPath();
+      ctx.moveTo(9, 16);
+      ctx.lineTo(14, 21);
+      ctx.lineTo(23, 11);
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    } else if (error) {
+      // Error: Red circle
+      ctx.beginPath();
+      ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+      ctx.fillStyle = "#EF4444"; // red-500
+      ctx.fill();
+      // White X
+      ctx.beginPath();
+      ctx.moveTo(10, 10);
+      ctx.lineTo(22, 22);
+      ctx.moveTo(22, 10);
+      ctx.lineTo(10, 22);
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    link.href = canvas.toDataURL("image/png");
+  }, [loading, progress, downloadUrl, error]);
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       setFile(acceptedFiles[0]);
