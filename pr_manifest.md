@@ -1,23 +1,25 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Dynamic Favicon Status Indicator
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved:
+Audiobook generation can take minutes. Users often switch tabs while waiting. By updating the browser tab's favicon dynamically based on the generation state (idle, generating, success, error), users can monitor progress without keeping the app in the foreground.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals:
+- [Screenshot](/home/jules/verification/screenshots/verification.png)
+- [Video](/home/jules/verification/videos/verification.webm)
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Created a `useEffect` hook in `web-ui/src/app/page.tsx` to handle the favicon rendering logic.
+- Utilized an HTML5 canvas to dynamically draw standard circular state indicators (Blue spinner for loading, Green check for success, Red cross for error).
+- Encoded the canvas via `toDataURL` to inject as a custom data-uri `<link rel="icon">`.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- **Assumption:** Next.js allows dynamically appending a `link[rel="icon"]` to override the static `/favicon.ico`. We implemented it as a canvas injection to avoid downloading or managing multiple static icon assets.
+- **Tradeoff (Simplicity First):** I chose to implement the hook directly in `page.tsx` rather than creating a separate file abstraction `useDynamicFavicon.ts`, prioritizing surgical simplicity and minimizing touched files.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Start the Next.js server (`npm run dev`).
+2. Input some text in the application and click "Start Generation".
+3. Observe the browser tab: The favicon should change to a blue indicator.
+4. When finished, it will switch to a green checkmark. (Test errors to see the red X).
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: `git push origin HEAD:feature/dynamic-favicon-status-indicator && gh pr create --title "feat: Dynamic Favicon Status Indicator" --body-file pr_manifest.md`
