@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Square, Loader2, Check } from 'lucide-react';
+import { Play, Square, Loader2, Check, ArrowDownAZ, ArrowDownZA, ArrowUpDown } from 'lucide-react';
 
 interface Voice {
   id: string;
@@ -27,7 +27,14 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
+  const [sortOrder, setSortOrder] = useState<'default' | 'asc' | 'desc'>('default');
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const toggleSort = () => {
+    if (sortOrder === 'default') setSortOrder('asc');
+    else if (sortOrder === 'asc') setSortOrder('desc');
+    else setSortOrder('default');
+  };
 
   useEffect(() => {
     // Cleanup audio when component unmounts
@@ -105,26 +112,47 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
 
   const filteredVoices = VOICES.filter(voice =>
     genderFilter === 'All' || voice.gender === genderFilter
-  );
+  ).sort((a, b) => {
+    if (sortOrder === 'asc') return a.name.localeCompare(b.name);
+    if (sortOrder === 'desc') return b.name.localeCompare(a.name);
+    return 0;
+  });
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex bg-gray-100 p-1 rounded-lg">
-        {(['All', 'Female', 'Male'] as const).map((filter) => (
-          <button
-            key={filter}
-            onClick={() => setGenderFilter(filter)}
-            className={`
-              flex-1 py-1.5 text-xs font-semibold rounded-md transition-all
-              ${genderFilter === filter
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
-              }
-            `}
-          >
-            {filter}
-          </button>
-        ))}
+      <div className="flex items-center gap-2">
+        <div className="flex bg-gray-100 p-1 rounded-lg flex-1">
+          {(['All', 'Female', 'Male'] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setGenderFilter(filter)}
+              className={`
+                flex-1 py-1.5 text-xs font-semibold rounded-md transition-all
+                ${genderFilter === filter
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
+                }
+              `}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={toggleSort}
+          className={`
+            p-2 rounded-lg transition-all flex items-center justify-center
+            ${sortOrder !== 'default'
+              ? 'bg-blue-100 text-blue-600'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            }
+          `}
+          title={`Sort: ${sortOrder === 'default' ? 'Default' : sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
+        >
+          {sortOrder === 'default' && <ArrowUpDown className="w-4 h-4" />}
+          {sortOrder === 'asc' && <ArrowDownAZ className="w-4 h-4" />}
+          {sortOrder === 'desc' && <ArrowDownZA className="w-4 h-4" />}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
