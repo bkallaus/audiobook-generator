@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus } from 'lucide-react';
+import { Upload, Play, Loader2, FileAudio, FileText, CheckCircle, Clock, Minus, Plus, Info, X } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 
 export default function Home() {
@@ -19,6 +19,7 @@ export default function Home() {
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] = useState<string | null>(null);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
 
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [inputMode, setInputMode] = useState<'file' | 'text'>('file');
 
   useEffect(() => {
@@ -183,10 +184,19 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
       <div className="max-w-5xl mx-auto">
-        <header className="mb-10 text-center">
-          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-            Kokoro Audiobook Generator
-          </h1>
+        <header className="mb-10 text-center relative">
+          <div className="flex items-center justify-center gap-3">
+            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              Kokoro Audiobook Generator
+            </h1>
+            <button
+              onClick={() => setIsInfoModalOpen(true)}
+              className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-all"
+              title="About this App"
+            >
+              <Info className="w-6 h-6" />
+            </button>
+          </div>
           <p className="text-gray-500 mt-3 text-lg">
             High-performance local TTS. Convert EPUBs or Text to Audiobooks with parallel processing.
           </p>
@@ -473,6 +483,54 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Info Modal */}
+      {isInfoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsInfoModalOpen(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <Info className="w-5 h-5 text-blue-500" /> About Kokoro Audiobook Generator
+              </h3>
+              <button
+                onClick={() => setIsInfoModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-200 p-2 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-gray-600 text-sm">
+              <p>
+                This application generates high-quality audiobooks entirely on your local machine using the <a href="https://huggingface.co/hexgrad/Kokoro-82M" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Kokoro-82M</a> text-to-speech model.
+              </p>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold text-gray-800">Key Features:</h4>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><strong className="text-gray-700">Privacy First:</strong> All processing happens locally. No data is sent to the cloud.</li>
+                  <li><strong className="text-gray-700">Format Support:</strong> Upload <code>.epub</code> or <code>.txt</code> files, or paste raw text.</li>
+                  <li><strong className="text-gray-700">Output:</strong> Generates standard MP3s or chapterized M4B audiobooks.</li>
+                  <li><strong className="text-gray-700">High Performance:</strong> Uses parallel workers to speed up generation significantly.</li>
+                </ul>
+              </div>
+
+              <div className="bg-blue-50 text-blue-800 p-4 rounded-lg mt-4 text-xs">
+                <strong>Tip:</strong> You can adjust the playback speed in the configuration panel. Generating very long books may take some time depending on your system&apos;s hardware.
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+              <button
+                onClick={() => setIsInfoModalOpen(false)}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
