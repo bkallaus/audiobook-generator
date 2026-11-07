@@ -14,7 +14,7 @@ export class KokoroClient {
         this.baseUrl = baseUrl;
     }
 
-    async generateAudio(text: string, voice: string, speed: number = 1.0, signal?: AbortSignal): Promise<Buffer> {
+    async generateAudio(text: string, voice: string, speed: number = 1.0, format: 'm4b' | 'mp3' | 'wav' = 'mp3', signal?: AbortSignal): Promise<Buffer> {
         try {
             const response = await axios.post(
                 `${this.baseUrl}/audio/speech`,
@@ -22,7 +22,7 @@ export class KokoroClient {
                     input: text,
                     voice: voice,
                     speed: speed,
-                    response_format: 'mp3', // Request mp3 from Kokoro, we'll convert to m4b later
+                    response_format: format === 'wav' ? 'wav' : 'mp3', // Request mp3 for m4b conversion
                 },
                 {
                     responseType: 'arraybuffer',

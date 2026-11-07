@@ -59,6 +59,7 @@ async function generateAndSaveChunk(
     kokoro: KokoroClient,
     voice: string,
     speed: number,
+    format: 'm4b' | 'mp3' | 'wav',
     signal: AbortSignal,
     bookDir: string,
     chapterTitle: string,
@@ -68,11 +69,12 @@ async function generateAndSaveChunk(
     if (signal.aborted) throw new Error('Generation aborted');
 
     // Generate audio
-    const audio = await kokoro.generateAudio(text, voice, speed, signal);
+    const audio = await kokoro.generateAudio(text, voice, speed, format, signal);
 
     // Construct filename
     const chapterTitleSafe = chapterTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 50);
-    const chunkFilename = `${String(chapterIndex).padStart(3, '0')}_${chapterTitleSafe}_part${chunkIndex}.mp3`;
+    const chunkExt = format === 'wav' ? '.wav' : '.mp3';
+    const chunkFilename = `${String(chapterIndex).padStart(3, '0')}_${chapterTitleSafe}_part${chunkIndex}${chunkExt}`;
     const chunkPath = path.join(bookDir, chunkFilename);
 
     // Save to disk
@@ -89,6 +91,7 @@ async function processChapters(
     kokoro: KokoroClient,
     voice: string,
     speed: number,
+    format: 'm4b' | 'mp3' | 'wav',
     signal: AbortSignal,
     sendEvent: (data: any) => void
 ): Promise<string[]> {
@@ -165,6 +168,7 @@ async function processChapters(
                 kokoro,
                 voice,
                 speed,
+                format,
                 signal,
                 bookDir,
                 task.chapterTitle,
@@ -207,7 +211,7 @@ export async function POST(req: NextRequest) {
     const textInput = formData.get('text') as string | null;
     const voice = formData.get('voice') as string || 'af_heart';
     const speed = parseFloat(formData.get('speed') as string || '1.0');
-    const outputFormat = (formData.get('format') as 'm4b' | 'mp3') || 'm4b';
+    const outputFormat = (formData.get('format') as 'm4b' | 'mp3' | 'wav') || 'm4b';
 
     if (!file && !textInput) {
         return NextResponse.json({ error: 'No file or text provided' }, { status: 400 });
@@ -238,6 +242,7 @@ export async function POST(req: NextRequest) {
                     kokoro,
                     voice,
                     speed,
+                    outputFormat,
                     req.signal,
                     sendEvent
                 );

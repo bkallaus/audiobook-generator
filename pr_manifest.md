@@ -1,23 +1,25 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: WAV Output Format Support
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Added support for generating audiobooks in standard uncompressed WAV format for users needing lossless quality output.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals: UI screenshot and video recorded during playwright testing.
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Updated frontend state in `page.tsx` to support 'wav' format option
+- Added WAV to the format selection UI with proper layout adjustments
+- Updated backend API route in `route.ts` to parse 'wav' format
+- Modified `AudioProcessor` in `audio.ts` to handle wav merging using ffmpeg by copying the stream
+- Configured Kokoro TTS client in `kokoro.ts` to request 'wav' instead of 'mp3' when wav is selected
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- Made Kokoro response format dynamic based on the selected output format. When WAV is selected, Kokoro directly outputs WAV, keeping it lossless end-to-end.
+- Assumed standard PCM 16-bit WAV is sufficient for most use cases without extra ffmpeg options.
+- The UI format selection grid was refactored to use standard flex columns instead of grid columns to accommodate 3 items cleanly on mobile and desktop without awkward 2x1 grid gaps.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+- Start the server `npm run dev` in `web-ui`
+- Select 'WAV (Lossless)' from Output Format options
+- Provide text and generate audio
+- Check that the downloaded file is a valid `.wav` file
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: Used `submit` tool to open PR.
