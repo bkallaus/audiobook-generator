@@ -8,7 +8,7 @@ export class AudioProcessor {
         inputFiles: string[],
         outputDir: string,
         filename: string,
-        format: 'm4b' | 'mp3',
+        format: 'm4b' | 'mp3' | 'wav',
         metadata: { title?: string; author?: string }
     ): Promise<string> {
         const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'audio-merge-'));
@@ -34,8 +34,8 @@ export class AudioProcessor {
                     .audioBitrate('128k')
                     .outputOptions('-movflags', '+faststart');
             } else {
-                // MP3
-                // Since inputs are already MP3 (from Kokoro), we can copy the stream
+                // MP3 or WAV
+                // Since inputs are already in the target format (from Kokoro), we can copy the stream
                 // This avoids re-encoding artifacts and is much faster
                 command = command
                     .audioCodec('copy');
