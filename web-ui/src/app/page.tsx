@@ -258,13 +258,16 @@ export default function Home() {
                   <div className="absolute bottom-2 right-2 flex gap-2">
                     {textInput.trim().length > 0 && (
                       <span className="text-xs font-medium text-gray-500 bg-white/80 backdrop-blur px-2 py-1 rounded">
-                        ~{(() => {
+                        {(() => {
                           const words = textInput.trim().split(/\s+/).filter(w => w.length > 0).length;
                           const secs = (words / 150 * 60) / speed;
-                          if (secs < 1) return '< 1s';
-                          const m = Math.floor(secs / 60);
-                          const s = Math.floor(secs % 60);
-                          return m > 0 ? `${m}m ${s}s` : `${s}s`;
+                          let timeStr = '< 1s';
+                          if (secs >= 1) {
+                            const m = Math.floor(secs / 60);
+                            const s = Math.floor(secs % 60);
+                            timeStr = m > 0 ? `${m}m ${s}s` : `${s}s`;
+                          }
+                          return `${words.toLocaleString()} word${words === 1 ? '' : 's'} (~${timeStr})`;
                         })()}
                       </span>
                     )}
