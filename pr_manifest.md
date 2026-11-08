@@ -1,23 +1,23 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Word Count Display for Text Input
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Users pasting text previously only saw a rough time estimate. This feature displays the exact word count alongside the time estimate, giving users concrete feedback on the length of their text input.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals: [Word Count Verification Screenshot](/home/jules/verification/screenshots/verification.png)
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Located the badge rendering logic inside the `textInput` container in `web-ui/src/app/page.tsx`.
+- Refactored the inline JSX function to capture the word count logic and prepend it directly to the estimated time string (e.g. `1,250 words (~1m 20s)`).
+- Ensured grammatical correctness (e.g., '1 word' vs '2 words').
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- Evaluated 3 paths: 1) Standard: integrate word count into the existing time badge. 2) Minimalist: replace time estimate completely. 3) Lateral: show progress bar. Chose Standard to add concrete value without destroying the existing useful time estimate feature.
+- Kept the code perfectly inline within the existing Immediately Invoked Function Expression (IIFE) to avoid cluttering the parent component state or introducing new single-use helper functions.
 
 Testing Instructions:
 1. Start the next.js development server: `cd web-ui && npm run dev`.
 2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+3. Click on the "Text Input" tab.
+4. Type or paste some text into the text area.
+5. Look at the bottom right of the text area to see the exact word count alongside the estimated time (e.g., "10 words (~4s)").
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: `git checkout -b feature/word-count-display && git commit -m "feat: Word Count Display for Text Input" && git push -u origin HEAD && gh pr create --title "feat: Word Count Display for Text Input" --body-file pr_manifest.md`
