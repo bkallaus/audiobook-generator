@@ -8,6 +8,7 @@ const ALLOWED_VOICES = [
 export async function GET(req: NextRequest) {
     const searchParams = req.nextUrl.searchParams;
     const voice = searchParams.get('voice');
+    const customText = searchParams.get('text');
 
     if (!voice || !ALLOWED_VOICES.includes(voice)) {
         return NextResponse.json({ error: 'Invalid or missing voice parameter' }, { status: 400 });
@@ -15,8 +16,13 @@ export async function GET(req: NextRequest) {
 
     try {
         const kokoro = new KokoroClient();
-        // Short sample text
-        const text = "Hello, this is a sample of my voice.";
+
+        // Use custom text if provided, truncated to 100 characters to ensure fast preview generation
+        let text = "Hello, this is a sample of my voice.";
+        if (customText && customText.trim().length > 0) {
+            text = customText.trim().substring(0, 100);
+        }
+
         const audioBuffer = await kokoro.generateAudio(text, voice, 1.0);
 
         return new NextResponse(new Blob([new Uint8Array(audioBuffer)]), {
