@@ -21,9 +21,10 @@ const VOICES: Voice[] = [
 interface VoicePickerProps {
   selectedVoice: string;
   onVoiceSelect: (voiceId: string) => void;
+  previewText?: string;
 }
 
-export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) {
+export function VoicePicker({ selectedVoice, onVoiceSelect, previewText }: VoicePickerProps) {
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
@@ -62,7 +63,10 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
     setLoadingVoice(voiceId);
 
     try {
-      const audio = new Audio(`/api/sample?voice=${voiceId}`);
+      const url = previewText
+        ? `/api/sample?voice=${voiceId}&text=${encodeURIComponent(previewText)}`
+        : `/api/sample?voice=${voiceId}`;
+      const audio = new Audio(url);
       audioRef.current = audio;
 
       audio.onended = () => {
