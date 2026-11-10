@@ -36,6 +36,7 @@ export default function Home() {
   }, [loading]);
   const [textInput, setTextInput] = useState('');
   const [format, setFormat] = useState<'m4b' | 'mp3'>('m4b');
+  const [bitrate, setBitrate] = useState('128k');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -82,6 +83,7 @@ export default function Home() {
     formData.append('voice', voice);
     formData.append('speed', speed.toString());
     formData.append('format', format);
+    formData.append('bitrate', bitrate);
 
     try {
       setStatusLog(prev => [...prev, { time: new Date(), msg: 'Uploading and processing...' }]);
@@ -322,7 +324,21 @@ export default function Home() {
 
               {/* Format Selection */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Output Format</label>
+                  {format === 'm4b' && (
+                    <select
+                      value={bitrate}
+                      onChange={(e) => setBitrate(e.target.value)}
+                      className="text-xs border-gray-200 rounded-md bg-gray-50 text-gray-700 py-1 pl-2 pr-6 cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
+                      <option value="64k">64 kbps (Low)</option>
+                      <option value="96k">96 kbps (Standard)</option>
+                      <option value="128k">128 kbps (High)</option>
+                      <option value="192k">192 kbps (Ultra)</option>
+                    </select>
+                  )}
+                </div>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer p-3 border border-gray-200 rounded-lg w-full hover:bg-gray-50 transition-colors">
                     <input
