@@ -1,23 +1,27 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Add M4B bitrate selector
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: This feature allows users to configure the audio bitrate when generating M4B files to balance between file size and audio quality.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals: N/A
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Updated `audio.ts` to accept `bitrate` in `metadata` and apply it to the ffmpeg command using `audioBitrate`.
+- Updated `route.ts` API endpoint to extract `bitrate` from `FormData` and pass it to the audio processor.
+- Updated `page.tsx` to include a new state variable for `bitrate`, append it to the generation request, and render a dropdown to select the bitrate (64k, 96k, 128k, 192k) when the output format is set to M4B.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- Standard approach: Added the selector next to the format selection only when M4B is chosen.
+- Minimalist approach: Hardcode a specific bitrate. Rejected because the prompt implies an explicit selection feature.
+- Lateral approach: Let users type any bitrate string. Rejected because it could cause unexpected issues, it is safer to limit to standard values like 64k, 96k, 128k, 192k.
+- Chose standard approach to allow safe, validated control.
+- Assumed standard bitrates are 64k, 96k, 128k, and 192k based on common audiobook qualities.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Run `npm run dev` in `web-ui`.
+2. Visit `http://localhost:3000`.
+3. The format defaults to M4B. Notice the dropdown to the right of "Output Format" with values like "128 kbps (High)".
+4. Select "MP3" and ensure the dropdown is hidden.
+5. Select "M4B" and change the bitrate to "64k".
+6. Generate an audiobook and ensure the output uses the selected bitrate (this can be checked by file size or metadata).
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: git push origin HEAD && gh pr create --fill
