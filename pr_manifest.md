@@ -1,23 +1,31 @@
-PR Title: feat: Speed Fine-Tuning Controls
+PR Title: feat: Voice Picker Search Filter
 
-The Problem Solved: Users lacked fine-grained control over the playback speed, making it tedious to accurately dial in specific decimal values using just the range slider. We've introduced small - and + adjustment buttons for precise 0.1x steps.
+The Problem Solved: Users previously had to scroll through the entire list of voices to find a specific one. This feature adds a search input field directly in the Voice Picker component, allowing users to instantly filter the list by typing the voice name, drastically improving navigation speed and ease of use.
 
-Visuals: [Speed Controls Screenshot](/home/jules/verification/speed_controls.png)
+Visuals:
+- Local Screenshot verification available in logs showing the search input filtering down to "Heart".
 
 Implementation Journey:
-- Imported `Minus` and `Plus` from `lucide-react`.
-- Converted the static `{speed}x` label into a flex container wrapping the speed value with `-` and `+` icon buttons.
-- Wired the buttons to increment/decrement the `speed` state by exactly 0.1, clamping between 0.5 and 2.0.
+- Created the feature branch `feature/voice-search-filter`.
+- Analyzed existing VoicePicker component structure and states.
+- Inserted a text input using the `Search` icon from `lucide-react`.
+- Added new `searchQuery` state.
+- Updated `filteredVoices` logic to filter both by the existing gender logic and by matching the search query case-insensitively against the voice name.
+- Created robust Playwright verification script to confirm visually.
 
 Tradeoffs & Assumptions:
-- Explored 3 paths: 1) Standard +/- buttons, 2) Number input box, 3) Mouse scroll support. Chose Standard because it perfectly blends with the current styling and is highly discoverable without complex state handling.
-- Kept the underlying range slider fully intact for rapid sweeping adjustments.
-- Leveraged existing `lucide-react` library so no new dependencies were required.
+- **Assumption:** Users know the name of the voice they want, or at least a part of it.
+- **Architectural approach 1 (Standard):** Create a heavy overarching global search mechanism spanning the app.
+- **Architectural approach 2 (Minimalist):** A localized search input strictly living inside `VoicePicker.tsx`, filtering local state before render.
+- **Architectural approach 3 (Lateral):** Move the voice list entirely to a full-screen modal with categorization and infinite scrolling.
+- **Choice:** Opted for the Minimalist approach. Modifying `VoicePicker.tsx` directly surgically adds the feature where it's needed most without over-engineering complex global state or massive UI shifts, perfectly aligned with the "simplicity first" rule.
 
 Testing Instructions:
-1. Start the next.js development server: `cd web-ui && npm run dev`.
-2. Open `http://localhost:3000`.
-3. Locate the "Speed" configuration.
-4. Click the `-` and `+` buttons to verify the speed increments or decrements by 0.1x accurately, clamping precisely between 0.5x and 2.0x.
+1. Start the next dev server via `cd web-ui && npm run dev`.
+2. Open http://localhost:3000 in your browser.
+3. Observe the "Voice Model" section on the left.
+4. Click into the new "Search voices..." input.
+5. Type "Sky" or "Adam".
+6. Verify the list narrows to just those voices and that their playback features still function identically.
 
-Action Item: `git push -u origin feature/speed-fine-tuning-nova && gh pr create --title "feat: Speed Fine-Tuning Controls" --body-file pr_manifest.md`
+Action Item: git push origin feature/voice-search-filter && gh pr create --title "feat: Voice Picker Search Filter" --body-file pr_manifest.md
