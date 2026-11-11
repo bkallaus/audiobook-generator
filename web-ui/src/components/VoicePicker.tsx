@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, Square, Loader2, Check } from 'lucide-react';
+import { Play, Square, Loader2, Check, Search } from 'lucide-react';
 
 interface Voice {
   id: string;
@@ -27,6 +27,7 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
   const [playingVoice, setPlayingVoice] = useState<string | null>(null);
   const [loadingVoice, setLoadingVoice] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<'All' | 'Male' | 'Female'>('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -103,9 +104,11 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
     }
   };
 
-  const filteredVoices = VOICES.filter(voice =>
-    genderFilter === 'All' || voice.gender === genderFilter
-  );
+  const filteredVoices = VOICES.filter(voice => {
+    const matchesGender = genderFilter === 'All' || voice.gender === genderFilter;
+    const matchesSearch = voice.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesGender && matchesSearch;
+  });
 
   return (
     <div className="flex flex-col gap-3">
@@ -125,6 +128,20 @@ export function VoicePicker({ selectedVoice, onVoiceSelect }: VoicePickerProps) 
             {filter}
           </button>
         ))}
+      </div>
+
+
+      <div className="relative mb-2">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Search className="w-4 h-4 text-gray-400" />
+        </div>
+        <input
+          type="text"
+          placeholder="Search voices..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all placeholder-gray-400"
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
